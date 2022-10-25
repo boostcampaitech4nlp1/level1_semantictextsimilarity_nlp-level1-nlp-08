@@ -3,8 +3,6 @@ import torch
 import torchmetrics
 import pytorch_lightning as pl
 
-import model.loss as module_loss
-
 
 class Model(pl.LightningModule):
     def __init__(self, model_name, lr):
