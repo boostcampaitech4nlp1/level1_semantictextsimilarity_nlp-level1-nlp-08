@@ -3,6 +3,8 @@ import torch
 import torchmetrics
 import pytorch_lightning as pl
 
+from . import loss as loss_module
+
 
 class Model(pl.LightningModule):
     def __init__(self, model_name, lr):
@@ -16,7 +18,7 @@ class Model(pl.LightningModule):
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=model_name, num_labels=1)
         # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
-        self.loss_func = torch.nn.L1Loss()
+        self.loss_func = loss_module.L1_loss
 
     def forward(self, x):
         x = self.plm(x)['logits']
