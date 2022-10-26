@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
     parser.add_argument('--save_model', default='model/model.pt')
-    args = parser.parse_args(args=[])
+    args = parser.parse_args()
 
     # dataloader와 model을 생성합니다.
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path,
