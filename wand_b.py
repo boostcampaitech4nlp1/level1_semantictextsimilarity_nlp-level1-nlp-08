@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', default='klue/roberta-small', type=str)
     parser.add_argument('--batch_size', default=8, type=int)
-    parser.add_argument('--max_epoch', default=3, type=int)
+    parser.add_argument('--max_epoch', default=20, type=int)
     parser.add_argument('--shuffle', default=True)
     parser.add_argument('--learning_rate', default=1e-5, type=float)
     parser.add_argument('--train_path', default='../data/train.csv')
@@ -50,15 +50,26 @@ if __name__ == '__main__':
 # 찾기를 원하는 hyperparameter를 다음과 같이 sweep_config에 추가합니다.
 # 본 미션에서는 learning rate를 searching하는 예시를 보입니다.
 
+# Main에서 받는 인자들로부터 결정됨
+# 옵티마이저, loss등 모델에서 선택할 수 있는 폭들 증가시켜야 할 듯
 sweep_config = {
-    'method': 'random',  # random: 임의의 값의 parameter 세트를 선택
+    'method': 'bayes',  # random: 임의의 값의 parameter 세트를 선택, #bayes : 베이지안 최적화
     'parameters': {
         'lr': {
             # parameter를 설정하는 기준을 선택합니다. uniform은 연속적으로 균등한 값들을 선택합니다.
             'distribution': 'uniform',
             'min': 1e-5,                 # 최소값을 설정합니다.
             'max': 1e-4                  # 최대값을 설정합니다.
+        },
+        'batch_size': {
+            'values': [16, 32, 64]  # 배치 사이즈 조절
         }
+    },
+    # 위의 링크에 있던 예시
+    'early_terminate': {
+        'type': 'hyperband',
+        'max_iter': 30,  # 프로그램에 대해 최대 반복 횟수 지정, min과 max는 같이 사용 불가능한듯
+        's': 2
     }
 }
 
@@ -73,7 +84,8 @@ def sweep_train(config=None):
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle,
                             args.train_path, args.dev_path, args.test_path, args.predict_path)
     model = module_arch.Model(args.model_name, config.lr)
-    wandb_logger = WandbLogger(project='nlp-08-sts')  # 로컬 쪽에서 로깅되는 이름
+    # project 인자 부분 잘 모르겠습니다
+    wandb_logger = WandbLogger(project=args.project_name)
 
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch,
                          logger=wandb_logger, log_every_n_steps=1)
@@ -82,11 +94,12 @@ def sweep_train(config=None):
 
 
 sweep_id = wandb.sweep(
-    sweep=sweep_config,     # config 딕셔너리를 추가합니다.
+    sweep=sweep_config,             # config 딕셔너리를 추가합니다.
     project=args.project_name         # project의 이름을 추가합니다.
 )
+
 wandb.agent(
-    sweep_id=sweep_id,      # sweep의 정보를 입력하고
-    function=sweep_train,   # train이라는 모델을 학습하는 코드를
-    count=5                 # 총 5회 실행해봅니다.
+    sweep_id=sweep_id,
+    function=sweep_train,
+    count=10
 )
