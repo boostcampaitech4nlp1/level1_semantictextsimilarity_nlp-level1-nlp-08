@@ -1,22 +1,15 @@
 # import
-
-import os
-
 import wandb
 import argparse
 
 import random
 import numpy as np
 import pandas as pd
-import json
-
-import requests
 
 from tqdm.auto import tqdm
 
-import transformers
+
 import torch
-import torchmetrics
 import pytorch_lightning as pl
 
 from pytorch_lightning.loggers import WandbLogger
@@ -48,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--dev_path', default='../data/dev.csv')
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
-    parser.add_argument('--wandb_name', default='nlp-08-sts')
+    parser.add_argument('--project_name', default='nlp-08-sts')
 
     args = parser.parse_args(args=[])
 
@@ -80,7 +73,7 @@ def sweep_train(config=None):
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle,
                             args.train_path, args.dev_path, args.test_path, args.predict_path)
     model = module_arch.Model(args.model_name, config.lr)
-    wandb_logger = WandbLogger(project=args.wandb_name)  # 로컬 쪽에서 로깅되는 이름
+    wandb_logger = WandbLogger(project='nlp-08-sts')  # 로컬 쪽에서 로깅되는 이름
 
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch,
                          logger=wandb_logger, log_every_n_steps=1)
@@ -90,7 +83,7 @@ def sweep_train(config=None):
 
 sweep_id = wandb.sweep(
     sweep=sweep_config,     # config 딕셔너리를 추가합니다.
-    project='test1'         # project의 이름을 추가합니다.
+    project=args.project_name         # project의 이름을 추가합니다.
 )
 wandb.agent(
     sweep_id=sweep_id,      # sweep의 정보를 입력하고
