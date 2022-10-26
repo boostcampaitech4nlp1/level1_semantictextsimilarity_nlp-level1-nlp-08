@@ -9,3 +9,7 @@ def nll_loss(output, target):
 def L1_loss(output, target):
     loss_func = nn.L1Loss()
     return loss_func(output, target)
+
+def mse_loss(output, target) :
+    loss_func = nn.MSELoss()
+    return loss_func(output, target)
