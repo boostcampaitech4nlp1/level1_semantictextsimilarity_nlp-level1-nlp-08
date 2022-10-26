@@ -40,7 +40,8 @@ if __name__ == '__main__':
     model = module_arch.Model(args.model_name, args.learning_rate)
 
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(
+        gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
