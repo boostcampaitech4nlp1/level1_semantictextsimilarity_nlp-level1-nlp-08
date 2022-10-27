@@ -9,6 +9,7 @@ from . import loss as loss_module
 class Model(pl.LightningModule):
     def __init__(self, model_name, lr, bce):
         super().__init__()
+        self.save_hyperparameters()
         
         self.model_name = model_name
         self.lr = lr
@@ -33,7 +34,6 @@ class Model(pl.LightningModule):
             self.log('train_f1', torchmetrics.functional.f1_score(logits, y))
         else:
             self.log('train_pearson', torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
-            # self.log('train_log_pearson', np.log(torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze())).cpu().numpy())
         
         return loss
     
@@ -46,7 +46,6 @@ class Model(pl.LightningModule):
             self.log('val_f1', torchmetrics.functional.f1_score(logits, y))
         else:
             self.log('val_pearson', torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
-            # self.log('val_log_pearson', np.log(torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze())).cpu().numpy())
     
     def test_step(self, batch, batch_idx):
         x, y = batch
@@ -55,7 +54,6 @@ class Model(pl.LightningModule):
             self.log('test_f1', torchmetrics.functional.f1_score(logits, y))
         else:
             self.log('test_pearson', torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
-            # self.log('test_log_pearson', np.log(torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze())).cpu().numpy())
             
     def predict_step(self, batch, batch_idx):
         x = batch
