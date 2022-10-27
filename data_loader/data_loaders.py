@@ -56,7 +56,7 @@ class Dataloader(pl.LightningDataModule):
         return data
     
     def read_csv(self, data_type):
-        df = pd.read_csv(f"data/{data_type}.csv")
+        df = pd.read_csv(f"../data/{data_type}.csv")
         
         return df
     
@@ -130,7 +130,7 @@ class KfoldDataloader(pl.LightningDataModule):
         self.text_columns = ['sentence_1', 'sentence_2']
         
     def read_csv(self, data_type):
-        df = pd.read_csv(f"data/{data_type}.csv")
+        df = pd.read_csv(f"../data/{data_type}.csv")
         
         return df
     

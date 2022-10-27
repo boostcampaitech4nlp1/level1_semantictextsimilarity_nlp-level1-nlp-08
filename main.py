@@ -38,6 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('--patience', default=10, type=int)
     parser.add_argument('--monitor_mode', default='min', type=str)
     parser.add_argument('--top_k', default=3, type=int)
+    parser.add_argument('--train_ratio', default=0.8, type=float)
     
     parser.add_argument('--batch_size', '-b', default=32, type=int)
     parser.add_argument('--max_epoch', '-e', default=100, type=int)
