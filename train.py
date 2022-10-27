@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 
 from data_loader.data_loaders import Dataloader
 import model.model as module_arch
-import utils.utils
+import utils.utils as utils
 
 # fix random seeds for reproducibility
 SEED = 42
