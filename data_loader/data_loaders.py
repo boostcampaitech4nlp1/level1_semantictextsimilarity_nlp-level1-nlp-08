@@ -40,7 +40,9 @@ class Dataloader(pl.LightningDataModule):
         self.predict_dataset = None
         
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
-        self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+        
+        ## Todo. Token 추가하면 모델 차원이 달라져서 CUDA error 발생함. 다른 방법으로 추가해야 할 듯
+        # self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
 
         self.target_columns = ['label']
         self.delete_columns = ['id']
@@ -109,7 +111,7 @@ class Dataloader(pl.LightningDataModule):
     
     
 class KfoldDataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, shuffle, k: int=1, num_splits: int=10):
+    def __init__(self, model_name, batch_size, shuffle, k: int=3, num_splits: int=9):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
