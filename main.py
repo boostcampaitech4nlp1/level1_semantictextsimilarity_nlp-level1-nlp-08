@@ -46,7 +46,9 @@ if __name__ == '__main__':
     if args.mode == 'train' or args.mode == 't':
         train.train(args)
     elif args.mode == 'exp' or args.mode == 'e':
-        train.sweep(args)
+        exp_count = int(input("실험할 횟수를 입력해주세요"))
+        train.sweep(args,exp_count)
+        
     elif args.mode == 'inference' or args.mode == 'i':
         inference.inference(args)
     elif args.mode == 'full' or args.mode == 'f':

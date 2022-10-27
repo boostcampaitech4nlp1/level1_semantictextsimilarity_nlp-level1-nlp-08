@@ -35,7 +35,7 @@ def train(args):
     torch.save(model, args.save_model)
 
 
-def sweep(args):
+def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
     sweep_config = {
         'method': 'bayes',  # random: 임의의 값의 parameter 세트를 선택, #bayes : 베이지안 최적화
         'parameters': {
@@ -83,5 +83,5 @@ def sweep(args):
     wandb.agent(
         sweep_id=sweep_id,
         function=sweep_train,
-        count=3
+        count=exp_count  # 실험할 횟수 지정
     )
