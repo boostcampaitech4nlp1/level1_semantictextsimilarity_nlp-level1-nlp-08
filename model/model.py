@@ -1,9 +1,8 @@
 import transformers
 import torch
+import torch.nn as nn
 import torchmetrics
 import pytorch_lightning as pl
-import torch.nn as nn
-
 
 from . import loss as loss_module
 
@@ -17,7 +16,7 @@ class Model(pl.LightningModule):
         self.lr = lr
 
         # 사용할 모델을 호출합니다.
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
+        self.plm = transformers.v.from_pretrained(
             pretrained_model_name_or_path=model_name, num_labels=1)
         # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
         self.loss_func = loss_module.L1_loss
@@ -66,7 +65,7 @@ class Model(pl.LightningModule):
 
 class HeadClassifier(nn.Module):
 
-    def __init__(self, hidden_dim, drop_out_rate):
+    def __init__(self, hidden_dim=1024, drop_out_rate=0.2):
         super().__init__()
         self.dense = nn.Linear(768, hidden_dim)
         self.dropout = nn.Dropout(drop_out_rate)
