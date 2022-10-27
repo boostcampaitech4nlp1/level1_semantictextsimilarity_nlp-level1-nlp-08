@@ -93,6 +93,6 @@ class CheckpointEveryNEpochs(pl.Callback):
             
 # 모니터링 할 쌍들
 monitor_config = {
-    "val_loss":{"monitor":"val_loss","mode":"min"},
-    "val_pearson":{"monitor":"val_pearson","mode":"max"}
+    "val_loss":{"monitor":"val_loss", "mode":"min"},
+    "val_pearson":{"monitor":"val_pearson", "mode":"max"}
 }
