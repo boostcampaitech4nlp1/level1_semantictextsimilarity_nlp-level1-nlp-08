@@ -5,7 +5,6 @@ import pandas as pd
 
 import torch
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger
 from data_loader.data_loaders import Dataloader
 import model.model as module_arch
 from utils import utils
