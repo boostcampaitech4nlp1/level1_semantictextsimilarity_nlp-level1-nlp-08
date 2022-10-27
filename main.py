@@ -36,13 +36,16 @@ if __name__ == '__main__':
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
     parser.add_argument('--saved_model', default='/model/model.pt')
-    parser.add_argument('-n','--project_name', default='nlp-08-sts')
-    parser.add_argument('-m', '--mode', required=True)
-    parser.add_argument('--save_path', default='model/save_models/', type=str)
-    parser.add_argument('--monitor', default='val_loss', type=str)
+    
+    parser.add_argument('--save_path', default='model/save_models/', type=str)  
+    parser.add_argument('--monitor', default='val_loss', type=str)    
     parser.add_argument('--patience', default=3, type=int)
     parser.add_argument('--early_stop_mode', default='min', type=str)
     parser.add_argument('--top_k', default=2, type=int)
+    
+    parser.add_argument('-n','--project_name', default='nlp-08-sts')
+    parser.add_argument('-m', '--mode', required=True)
+
     args = parser.parse_args()
 
     if args.mode == 'train' or args.mode == 't':
@@ -53,14 +56,14 @@ if __name__ == '__main__':
         
     elif args.mode == 'inference' or args.mode == 'i':
         inference.inference(args)
-    elif args.mode == 'full' or args.mode == 'f':
-        train.train(args)
-        inference.inference(args)
+    # elif args.mode == 'full' or args.mode == 'f':
+    #     train.train(args)
+    #     inference.inference(args)
     else:
         print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")
         print("exp       : e,\texp")
         print("inference : i,\tinference")
-        print("full      : f,\tfull")
+        # print("full      : f,\tfull")
         
         

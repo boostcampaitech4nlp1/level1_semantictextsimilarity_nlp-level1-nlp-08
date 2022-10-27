@@ -16,17 +16,20 @@ def train(args):
     # dataloader와 model을 생성합니다.
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path,
                             args.test_path, args.predict_path)
-    model = module_arch.RoBERTa_Base_Model(
+    model = module_arch.Model(
         args.model_name, args.learning_rate)
 
     # wandb logger 설정
     wandb_logger = WandbLogger(project=args.project_name)
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, 
-                        callbacks=[
-                            utils.early_stop(monitor=args.monitor, patience=args.patience, mode=args.early_stop_mode), 
-                            utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=args.monitor)
-                        ])
+
+    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
+                         callbacks=[
+                             utils.early_stop(
+                                 monitor=args.monitor, patience=args.patience, mode=args.early_stop_mode),
+                             utils.best_save(
+                                 save_path=args.save_path + f'{args.model_name}/', top_k=2, monitor=args.monitor),
+                         ])
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
