@@ -32,8 +32,12 @@ if __name__ == '__main__':
     parser.add_argument('--dev_path', default='../data/dev.csv')
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
-    parser.add_argument('--save_model', default='model/model.pt')
-    parser.add_argument('--save_path', default='model/save_models/')
+    parser.add_argument('--save_model', default='model/model.pt', type=str)
+    parser.add_argument('--save_path', default='model/save_models/', type=str)
+    parser.add_argument('--monitor', default='val_loss', type=str)
+    parser.add_argument('--patience', default=3, type=int)
+    parser.add_argument('--early_stop_mode', default='min', type=str)
+    parser.add_argument('--top_k', default=2, type=int)
     args = parser.parse_args()
 
     # dataloader와 model을 생성합니다.
@@ -43,7 +47,10 @@ if __name__ == '__main__':
 
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, 
-                        callbacks=[utils.early_stop(monitor='val_loss', patience=5, mode='min'), utils.best_save(save_path=args.save_path, top_k=2, monitor='val_loss')])  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
+                        callbacks=[
+                            utils.early_stop(monitor=args.monitor, patience=args.patience, mode=args.early_stop_mode), 
+                            utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=2, monitor=args.monitor),  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
+                        ])
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
