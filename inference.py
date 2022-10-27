@@ -24,10 +24,7 @@ def inference(args):
     predictions = trainer.predict(model=model, datamodule=dataloader)
 
     predictions = list(round(float(i), 1) for i in torch.cat(predictions))
-    # Cliping
-    # predictions_c = list(round(float(min(0,max(5,i))), 1) for i in torch.cat(predictions))
-    # Normalize
-    predictions_n = [round(5 * x/(max(predictions) - min(predictions)), 1) for x in predictions]
+    predictions_n = [round(5 * x/(max(predictions) - min(predictions)), 1) for x in predictions] # Normalize
 
     output = pd.read_csv('../data/sample_submission.csv')
     output_n = pd.read_csv('../data/sample_submission.csv')

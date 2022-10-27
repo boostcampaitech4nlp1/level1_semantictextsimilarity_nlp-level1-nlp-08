@@ -23,13 +23,12 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.inputs)
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, train_ratio, shuffle, bce, train_path, test_path, predict_path):
+    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
         self.train_ratio = train_ratio
         self.shuffle = shuffle
-        self.bce = bce
 
         self.train_path = train_path
         self.test_path = test_path
