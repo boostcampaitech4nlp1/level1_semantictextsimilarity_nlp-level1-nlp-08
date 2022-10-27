@@ -33,7 +33,7 @@ def train(args):
     trainer.test(model=model, datamodule=dataloader)
 
     # 학습이 완료된 모델을 저장합니다.
-    save_model = f'model/{args.model_name}_epoch-{args.max_epoch}_batchSize-{args.batch_size}.pt'
+    save_model = f'model/save_models/{args.model_name}_epoch-{args.max_epoch}_batchSize-{args.batch_size}.pt'
     torch.save(model, save_model)
 
 
