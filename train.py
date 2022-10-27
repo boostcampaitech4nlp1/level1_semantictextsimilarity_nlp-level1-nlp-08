@@ -6,6 +6,8 @@ import pytorch_lightning as pl
 
 from data_loader.data_loaders import Dataloader
 import model.model as module_arch
+import utils.utils as utils
+
 
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
@@ -21,8 +23,9 @@ def train(args):
     # wandb logger 설정
     wandb_logger = WandbLogger(project=args.project_name)
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = pl.Trainer(
-        gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
+
+    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
+                         callbacks=[utils.early_stop(monitor='val_loss', patience=5, mode='min'), utils.best_save(save_path=args.save_path, top_k=2, monitor='val_loss')])  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)

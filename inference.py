@@ -3,6 +3,7 @@ import pandas as pd
 import torch
 import pytorch_lightning as pl
 from data_loader.data_loaders import Dataloader
+import model.model as module_arch
 
 
 def inference(args):
@@ -16,7 +17,9 @@ def inference(args):
 
     # Inference part
     # 저장된 모델로 예측을 진행합니다.
-    model = torch.load(args.saved_model)
+    model = module_arch.Model(args.model_name, args.learning_rate)
+    model.load_from_checkpoint(args.saved_model)
+    print("###### 모델 불러오기 완료 ######")
     predictions = trainer.predict(model=model, datamodule=dataloader)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
