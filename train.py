@@ -8,6 +8,9 @@ import pytorch_lightning as pl
 from data_loader.data_loaders import Dataloader
 import model.model as module_arch
 
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import WandbLogger
+
 # fix random seeds for reproducibility
 SEED = 42
 random.seed(SEED)
@@ -22,9 +25,9 @@ if __name__ == '__main__':
     # 터미널 실행 예시 : python3 run.py --batch_size=64 ...
     # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', default='klue/roberta-small', type=str)
+    parser.add_argument('--model_name', default='klue/roberta-base', type=str)
     parser.add_argument('--batch_size', default=16, type=int)
-    parser.add_argument('--max_epoch', default=1, type=int)
+    parser.add_argument('--max_epoch', default=200, type=int)
     parser.add_argument('--shuffle', default=True)
     parser.add_argument('--learning_rate', default=1e-5, type=float)
     parser.add_argument('--train_path', default='../data/train.csv')
@@ -37,11 +40,14 @@ if __name__ == '__main__':
     # dataloader와 model을 생성합니다.
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path,
                             args.test_path, args.predict_path)
-    model = module_arch.Model(args.model_name, args.learning_rate)
+    model = module_arch.RoBERTa_Base_Model(
+        args.model_name, args.learning_rate)
 
+    # wandb logger 설정
+    wandb_logger = WandbLogger(project="roberta")
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
     trainer = pl.Trainer(
-        gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
+        gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
@@ -49,3 +55,11 @@ if __name__ == '__main__':
 
     # 학습이 완료된 모델을 저장합니다.
     torch.save(model, args.save_model)
+
+checkpoint_callback = ModelCheckpoint(
+    save_top_k=5,
+    monitor="val_pearson",
+    mode="max",
+    dirpath="./model/",
+    filename="sample-sts-{epoch:02d}-{val_pearson}",
+)
