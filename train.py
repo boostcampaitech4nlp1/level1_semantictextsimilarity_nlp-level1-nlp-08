@@ -91,7 +91,7 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         wandb.init(config=config)
         config = wandb.config
 
-        dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path, args.test_path, args.predict_path)
+        dataloader = Dataloader(args.model_name, config.batch_size, args.train_ratio, args.shuffle, args.train_path, args.test_path, args.predict_path)
         
         
         model = module_arch.Model(args.model_name, config.lr)
