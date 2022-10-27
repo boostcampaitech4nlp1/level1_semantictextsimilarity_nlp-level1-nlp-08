@@ -40,13 +40,10 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mode', required=True)
     args = parser.parse_args()
 
-    assert (args.mode != 'train' or args.mode != 'inference' or args.mode !=
-            'exp' or args.mode != 'full'), "모드를 다시 설정해주세요"
-
     if args.mode == 'train' or args.mode == 't':
         train.train(args)
     elif args.mode == 'exp' or args.mode == 'e':
-        exp_count = int(input("실험할 횟수를 입력해주세요"))
+        exp_count = int(input("실험할 횟수를 입력해주세요 "))
         train.sweep(args,exp_count)
         
     elif args.mode == 'inference' or args.mode == 'i':
@@ -55,7 +52,7 @@ if __name__ == '__main__':
         train.train(args)
         inference.inference(args)
     else:
-        print("모드를 다시 설정해주세요")
+        print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")
         print("exp       : e,\texp")
         print("inference : i,\tinference")
