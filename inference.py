@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--dev_path', default='../data/dev.csv')
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
-    parser.add_argument('--saved_model', default='model.pt')
+    parser.add_argument('--saved_model', default='model/model.pt')
     args = parser.parse_args(args=[])
 
     # dataloader와 model을 생성합니다.
@@ -40,7 +40,8 @@ if __name__ == '__main__':
                             args.test_path, args.predict_path)
 
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(
+        gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
 
     # Inference part
     # 저장된 모델로 예측을 진행합니다.
