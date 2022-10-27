@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, 
-                        callbacks=[utils.early_stop(monitor='val_loss', patience=5, mode='min'), utils.best_save(args.save_path)])  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
+                        callbacks=[utils.early_stop(monitor='val_loss', patience=5, mode='min'), utils.best_save(save_path=args.save_path, top_k=2, monitor='val_loss')])  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
