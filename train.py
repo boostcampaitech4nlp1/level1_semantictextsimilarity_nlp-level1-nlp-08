@@ -49,12 +49,13 @@ if __name__ == '__main__':
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, 
                         callbacks=[
                             utils.early_stop(monitor=args.monitor, patience=args.patience, mode=args.early_stop_mode), 
-                            utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=2, monitor=args.monitor),  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
+                            utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=args.monitor)
                         ])
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
 
-    # # 학습이 완료된 모델을 저장합니다.
-    # torch.save(model, args.save_model)
+    # 학습이 완료된 모델을 저장합니다.
+    save_model = f'model/{args.model_name}_epoch-{args.max_epoch}_batchSize-{args.batch_size}.pt'
+    torch.save(model, save_model)
