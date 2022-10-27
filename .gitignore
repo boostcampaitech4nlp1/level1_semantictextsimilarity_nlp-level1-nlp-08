@@ -187,3 +187,8 @@ wandb/
 
 # Model save folder
 model/save_models/
+
+# Saved model
+model.pt
+output.csv
+submit.csv
