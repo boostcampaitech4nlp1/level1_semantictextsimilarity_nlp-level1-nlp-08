@@ -54,3 +54,38 @@ if __name__ == '__main__':
 
     # # 학습이 완료된 모델을 저장합니다.
     torch.save(model, args.saved_model)
+    
+    
+    
+# K-Fold
+
+# Kmodel = Model(args.model_name, args.learning_rate, args.bce)
+
+# results = []
+# nums_folds = 3
+
+# for k in range(nums_folds):
+#     datamodule = KfoldDataloader(args.model_name, args.batch_size, args.shuffle, args.bce, k=k, num_splits=nums_folds)
+#     datamodule.prepare_data()
+#     datamodule.setup()
+    
+#     checkpoint_callback = ModelCheckpoint(dirpath='model_save/', filename='{k}_fold_{epoch:02d}',
+#                                           save_top_k=3, save_last=False, mode='max',
+#                                           monitor='val_pearson')
+#     earlystopping = EarlyStopping(monitor="val_pearson", patience=10, verbose=False)
+    
+#     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, 
+#                          callbacks=[checkpoint_callback, earlystopping], accelerator='gpu', devices=1)
+#     trainer.fit(model=Kmodel, datamodule=datamodule)
+#     score = trainer.test(model=Kmodel, datamodule=datamodule)
+    
+#     results.extend(score)
+
+# if args.bce:
+#     result = [x['test_f1'] for x in results]
+#     score = sum(result) / nums_folds
+#     print('K-fold Test f1 score: ', score)
+# else:
+#     result = [x['test_pearson'] for x in results]
+#     score = sum(result) / nums_folds
+#     print('K-fold Test pearson score: ', score)
