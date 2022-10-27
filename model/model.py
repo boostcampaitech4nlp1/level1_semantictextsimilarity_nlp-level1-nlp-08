@@ -85,7 +85,6 @@ class RoBERTa_Base_Model(pl.LightningModule):
         self.model_name = model_name
         self.lr = lr
 
-        # 사용할 모델을 호출합니다.
         self.plm = transformers.AutoModel.from_pretrained(pretrained_model_name_or_path=model_name)
         self.classifier = HeadClassifier(1024, 0.2)
         self.loss_func = loss_module.L1_loss

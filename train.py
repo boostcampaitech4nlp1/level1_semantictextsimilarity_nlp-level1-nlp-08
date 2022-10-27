@@ -11,12 +11,11 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 def train(args):
-    # dataloader와 model을 생성합니다.
     dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle,
                             args.train_path, args.test_path, args.predict_path)
     model = module_arch.Model(args.model_name, args.learning_rate)
     wandb_logger = WandbLogger(project=args.project_name)
-    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
+    trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
                          callbacks=[
                              utils.early_stop(monitor=args.monitor, patience=args.patience, mode=args.monitor_mode),
                              utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=args.monitor),
