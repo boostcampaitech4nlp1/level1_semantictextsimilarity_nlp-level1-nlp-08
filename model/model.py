@@ -4,18 +4,17 @@ import torch.nn as nn
 import torchmetrics
 import pytorch_lightning as pl
 
-from . import loss as loss_module
 
 
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr):
+    def __init__(self, model_name, lr, loss):
         super().__init__()
         self.save_hyperparameters()
         
         self.model_name = model_name
         self.lr = lr
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
-        self.loss_func = loss_module.L1_loss
+        self.loss_func = loss_config[loss]
             
     def forward(self, x):
         x = self.plm(x)['logits']
@@ -76,7 +75,7 @@ class HeadClassifier(nn.Module):
 
 class BaseModel(pl.LightningModule): # Base 모델로 이름 변경
 
-    def __init__(self, model_name, lr):
+    def __init__(self, model_name, lr, loss):
         super().__init__()
         self.save_hyperparameters()
 
@@ -86,7 +85,7 @@ class BaseModel(pl.LightningModule): # Base 모델로 이름 변경
         self.plm = transformers.AutoModel.from_pretrained(pretrained_model_name_or_path=model_name)
         input_dim = transformers.AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name).hidden_size # 히든벡터의 차원을 input으로 사용
         self.classifier = HeadClassifier(input_dim, 1024, 0.2)
-        self.loss_func = loss_module.L1_loss
+        self.loss_func = loss_config[loss]
 
     def forward(self, x):
         x = self.plm(x)[0]
@@ -126,3 +125,31 @@ class BaseModel(pl.LightningModule): # Base 모델로 이름 변경
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
         
         return optimizer
+    
+    
+
+
+
+def nll_loss(output, target):
+    loss_func = F.nll_loss()
+    return loss_func(output, target)
+
+def L1_loss(output, target):
+    loss_func = nn.L1Loss()
+    return loss_func(output, target)
+
+def mse_loss(output, target):
+    loss_func = nn.MSELoss()
+    return loss_func(output, target)
+
+def BCEWithLogitsLoss(output, target):
+    loss_func = nn.BCEWithLogitsLoss()
+    return loss_func(output, target)
+
+
+loss_config={
+    "nll":nll_loss,
+    "l1":L1_loss,
+    "mse":mse_loss,
+    "bce":BCEWithLogitsLoss
+}
