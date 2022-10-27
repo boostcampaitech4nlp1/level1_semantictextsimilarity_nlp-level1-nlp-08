@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--top_k', default=3, type=int)
     parser.add_argument('--train_ratio', default=0.8, type=float)
     
-    parser.add_argument('--batch_size', '-b', default=16, type=int)
+    parser.add_argument('--batch_size', '-b', default=32, type=int)
     parser.add_argument('--max_epoch', '-e', default=100, type=int)
     parser.add_argument('--project_name', '-n', default='nlp-08-sts')
     parser.add_argument('--mode', '-m', required=True)
