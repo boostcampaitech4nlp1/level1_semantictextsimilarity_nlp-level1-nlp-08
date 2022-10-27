@@ -16,7 +16,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 def train(args):
     project_name = re.sub('/','_',f'{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}')
     dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle, args.train_path, args.test_path, args.predict_path)
-    model = module_arch.Model(args.model_name, args.learning_rate)
+    model = module_arch.Model(args.model_name, args.learning_rate, args.loss)
     wandb_logger = WandbLogger(project=project_name)
     trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
                          callbacks=[
@@ -73,7 +73,10 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
                 'max': 1e-4                  # 최대값을 설정합니다.
             },
             'batch_size': {
-                'values': [16, 32, 64]  # 배치 사이즈 조절
+                'values': [16, 32, 64]  # 배치 사이즈 조절, OOM 안나는 선에서 할 수 있도록 실험할 때 미리 세팅해주어야 함
+            },
+            'loss':{
+                'values':["nll","l1","mse"] # loss 사용할 것들 지정, bce는 이진 분류가 아니기 때문에 일단 제외
             }
         },
         # 위의 링크에 있던 예시
@@ -94,7 +97,7 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         dataloader = Dataloader(args.model_name, config.batch_size, args.train_ratio, args.shuffle, args.train_path, args.test_path, args.predict_path)
         
         
-        model = module_arch.Model(args.model_name, config.lr)
+        model = module_arch.Model(args.model_name, config.lr, args.loss)
         wandb_logger = WandbLogger(project=project_name)
 
         trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
@@ -103,7 +106,7 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
 
     sweep_id = wandb.sweep(
         sweep=sweep_config,             # config 딕셔너리를 추가합니다.
-        project=project_name         # project의 이름을 추가합니다.
+        project=project_name            # project의 이름을 추가합니다.
     )
 
     wandb.agent(
