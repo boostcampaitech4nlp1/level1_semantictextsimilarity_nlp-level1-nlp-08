@@ -26,7 +26,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', default='monologg/koelectra-base-finetuned-sentiment', type=str)
     parser.add_argument('--batch_size', default=32, type=int)
-    parser.add_argument('--max_epoch', default=40, type=int)
+    parser.add_argument('--max_epoch', default=100, type=int)
     parser.add_argument('--shuffle', default=True)
     parser.add_argument('--bce', default=False)
     parser.add_argument('--train_ratio', default=0.8)
@@ -44,9 +44,9 @@ if __name__ == '__main__':
                             args.train_path, args.test_path, args.predict_path)
     model = module_arch.Model(args.model_name, args.learning_rate, args.bce)
 
-    # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = pl.Trainer(gpus=1, accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1, 
-                        callbacks=[utils.early_stop(monitor='val_loss', patience=5, mode='min'), utils.best_save(save_path=args.save_path, top_k=3, monitor='val_loss')])
+    trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, 
+                        callbacks=[utils.early_stop(monitor='val_loss', patience=10, mode='min'), utils.best_save(save_path=args.save_path, top_k=5, monitor='val_loss')],
+                        logger=wandb_logger)
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
