@@ -56,10 +56,10 @@ if __name__ == '__main__':
     # 학습이 완료된 모델을 저장합니다.
     torch.save(model, args.save_model)
 
-checkpoint_callback = ModelCheckpoint(
-    save_top_k=5,
-    monitor="val_pearson",
-    mode="max",
-    dirpath="./model/",
-    filename="sample-sts-{epoch:02d}-{val_pearson}",
-)
+    checkpoint_callback = ModelCheckpoint(
+        save_top_k=5,
+        monitor="val_pearson",
+        mode="max",
+        dirpath="./model/",
+        filename="sample-sts-{epoch:02d}-{val_pearson}",
+    )
