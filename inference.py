@@ -45,9 +45,9 @@ if __name__ == '__main__':
 
     # Inference part
     # 저장된 모델로 예측을 진행합니다.
-    model = module_arch.Model(args.model_name, args.learning_rate)
+    model_name = '/'.join(args.saved_model.split('/')[2:4])
+    model = module_arch.Model(model_name, args.learning_rate)
     model.load_from_checkpoint(args.saved_model)
-    print("###### 모델 불러오기 완료 ######")
     predictions = trainer.predict(model=model, datamodule=dataloader)
 
     # 예측된 결과를 형식에 맞게 반올림하여 준비합니다.
