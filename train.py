@@ -1,6 +1,9 @@
+import re
+
 import wandb
 import torch
 import pytorch_lightning as pl
+
 
 from data_loader.data_loaders import Dataloader
 from pytorch_lightning.loggers import WandbLogger
@@ -11,14 +14,14 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 def train(args):
-    dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle,
-                            args.train_path, args.test_path, args.predict_path)
+    project_name = re.sub('/','_',f'{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}')
+    dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle, args.train_path, args.test_path, args.predict_path)
     model = module_arch.Model(args.model_name, args.learning_rate)
-    wandb_logger = WandbLogger(project=args.project_name)
+    wandb_logger = WandbLogger(project=project_name)
     trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
                          callbacks=[
-                             utils.early_stop(monitor=utils.monitor_config[args.mode]["monitor"], patience=args.patience, mode=utils.monitor_config[args.mode]["mode"]),
-                             utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=utils.monitor_config[args.mode]["monitor"],mode=utils.monitor_config[args.mode]["mode"])
+                             utils.early_stop(monitor=utils.monitor_config[args.monitor]["monitor"], patience=args.patience, mode=utils.monitor_config[args.monitor]["mode"]),
+                             utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=utils.monitor_config[args.monitor]["monitor"],mode=utils.monitor_config[args.monitor]["mode"])
                          ])
 
     trainer.fit(model=model, datamodule=dataloader)
@@ -58,6 +61,8 @@ def train(args):
 
 
 def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
+    project_name = re.sub('/','_',f'{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}')
+    
     sweep_config = {
         'method': 'bayes',  # random: 임의의 값의 parameter 세트를 선택, #bayes : 베이지안 최적화
         'parameters': {
@@ -86,20 +91,19 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         wandb.init(config=config)
         config = wandb.config
 
-        dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle,
-                                args.train_path, args.dev_path, args.test_path, args.predict_path)
+        dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path, args.test_path, args.predict_path)
+        
+        
         model = module_arch.Model(args.model_name, config.lr)
-        # project 인자 부분 잘 모르겠습니다
-        wandb_logger = WandbLogger(project=args.project_name)
+        wandb_logger = WandbLogger(project=project_name)
 
-        trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch,
-                             logger=wandb_logger, log_every_n_steps=1)
+        trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
 
     sweep_id = wandb.sweep(
         sweep=sweep_config,             # config 딕셔너리를 추가합니다.
-        project=args.project_name         # project의 이름을 추가합니다.
+        project=project_name         # project의 이름을 추가합니다.
     )
 
     wandb.agent(
