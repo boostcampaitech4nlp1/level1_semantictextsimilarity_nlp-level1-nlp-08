@@ -17,8 +17,8 @@ def train(args):
     wandb_logger = WandbLogger(project=args.project_name)
     trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
                          callbacks=[
-                             utils.early_stop(monitor=args.monitor, patience=args.patience, mode=args.monitor_mode),
-                             utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=args.monitor),
+                             utils.early_stop(monitor=utils.monitor_config[args.mode]["monitor"], patience=args.patience, mode=utils.monitor_config[args.mode]["mode"]),
+                             utils.best_save(save_path=args.save_path + f'{args.model_name}/', top_k=args.top_k, monitor=utils.monitor_config[args.mode]["monitor"],mode=utils.monitor_config[args.mode]["mode"])
                          ])
 
     trainer.fit(model=model, datamodule=dataloader)
