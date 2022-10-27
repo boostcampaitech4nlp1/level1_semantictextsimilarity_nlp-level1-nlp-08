@@ -16,7 +16,7 @@ def train(args):
     # dataloader와 model을 생성합니다.
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path,
                             args.test_path, args.predict_path)
-    model = module_arch.RoBERTa_Base_Model(
+    model = module_arch.Model(
         args.model_name, args.learning_rate)
 
     # wandb logger 설정

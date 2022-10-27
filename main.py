@@ -36,6 +36,13 @@ if __name__ == '__main__':
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
     parser.add_argument('--saved_model', default='/model/model.pt')
+    
+    parser.add_argument('--save_path', default='model/save_models/', type=str)  
+    parser.add_argument('--monitor', default='val_loss', type=str)    
+    parser.add_argument('--patience', default=3, type=int)
+    parser.add_argument('--early_stop_mode', default='min', type=str)
+    parser.add_argument('--top_k', default=2, type=int)
+    
     parser.add_argument('-n','--project_name', default='nlp-08-sts')
     parser.add_argument('-m', '--mode', required=True)
     args = parser.parse_args()
