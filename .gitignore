@@ -180,5 +180,10 @@ data
 .wget-hsts
 
 # Personal folder
-
 jihoon
+
+# WandB
+wandb/
+
+# Model save folder
+model/save_models/
