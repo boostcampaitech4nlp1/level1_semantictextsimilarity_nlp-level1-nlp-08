@@ -7,6 +7,7 @@ import pytorch_lightning as pl
 
 from data_loader.data_loaders import Dataloader
 import model.model as module_arch
+import utils.utils
 
 # fix random seeds for reproducibility
 SEED = 42
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
     parser.add_argument('--save_model', default='model/model.pt')
+    parser.add_argument('--save_path', default='model/save_models/')
     args = parser.parse_args()
 
     # dataloader와 model을 생성합니다.
@@ -40,11 +42,12 @@ if __name__ == '__main__':
     model = module_arch.Model(args.model_name, args.learning_rate)
 
     # gpu가 없으면 'gpus=0'을, gpu가 여러개면 'gpus=4'처럼 사용하실 gpu의 개수를 입력해주세요
-    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1, 
+                        callbacks=[utils.early_stop(monitor='val_loss', patience=5, mode='min'), utils.best_save(args.save_path)])  # save_path에 모델명을 포함해주면 불러올 때 모델명을 split을 하여 같은 모델 구조 만들어주기 편할듯
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
 
-    # 학습이 완료된 모델을 저장합니다.
-    torch.save(model, args.save_model)
+    # # 학습이 완료된 모델을 저장합니다.
+    # torch.save(model, args.save_model)
