@@ -15,9 +15,9 @@ class Model(pl.LightningModule):
         self.bce = bce
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
         if self.bce:
-            self.loss_func = torch.nn.BCEWithLogitsLoss()
+            self.loss_func = loss_module.BCEWithLogitsLoss()
         else:
-            self.loss_func = torch.nn.L1Loss()
+            self.loss_func = loss_module.L1_loss()
             
     def forward(self, x):
         x = self.plm(x)['logits']
