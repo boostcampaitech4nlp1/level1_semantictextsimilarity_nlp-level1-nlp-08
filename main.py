@@ -39,6 +39,7 @@ if __name__ == '__main__':
     # parser.add_argument('--monitor_mode', default='min', type=str)
     parser.add_argument('--top_k', default=3, type=int)
     parser.add_argument('--train_ratio', default=0.8, type=float)
+    parser.add_argument('--loss',default="l1", type=str)
     
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
