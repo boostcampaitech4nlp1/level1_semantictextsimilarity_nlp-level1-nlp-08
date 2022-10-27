@@ -37,7 +37,6 @@ if __name__ == '__main__':
     parser.add_argument('--saved_model', default='model.pt')
     args = parser.parse_args(args=[])
 
-    wandb_logger = WandbLogger(project='koelectra-sts')
     dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle, args.bce,
                             args.train_path, args.test_path, args.predict_path)
 
