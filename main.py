@@ -11,6 +11,7 @@ from data_loader.data_loaders import Dataloader
 import inference
 import train
 
+
 # fix random seeds for reproducibility
 SEED = 42
 random.seed(SEED)

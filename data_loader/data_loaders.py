@@ -43,7 +43,7 @@ class Dataloader(pl.LightningDataModule):
         self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
 
         self.target_columns = ['label']
-        self.delete_columns = ['id', 'binary-label']
+        self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
 
     def tokenizing(self, dataframe):
@@ -126,7 +126,7 @@ class KfoldDataloader(pl.LightningDataModule):
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
         self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
         self.target_columns = ['label']
-        self.delete_columns = ['id', 'binary-label']
+        self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
         
     def read_csv(self, data_type):
