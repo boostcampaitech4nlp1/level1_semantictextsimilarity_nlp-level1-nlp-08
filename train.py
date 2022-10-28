@@ -43,7 +43,7 @@ def train(args):
                 top_k=args.top_k,
                 monitor=utils.monitor_config[args.monitor]["monitor"],
                 mode=utils.monitor_config[args.monitor]["mode"],
-                filename="{epoch}-{step}-{val_pearson}",    # best 모델 저장시에 filename 설정
+                filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
             ),
         ],
     )
@@ -144,9 +144,7 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         # project 인자 부분 잘 모르겠습니다
         wandb_logger = WandbLogger(project=args.project_name)
 
-        trainer = pl.Trainer(
-            gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1
-        )
+        trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
 
