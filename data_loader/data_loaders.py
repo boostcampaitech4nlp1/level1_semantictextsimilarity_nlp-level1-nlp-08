@@ -62,7 +62,7 @@ class Dataloader(pl.LightningDataModule):
         # )
 
         ###
-        self.add_token = ["<PERSON>", "rtt", "sampled"]  # 넣을 토큰 지정
+        self.add_token = ["<PERSON>"]  # 넣을 토큰 지정 , "rtt", "sampled"
         ###
         self.new_token_count = self.tokenizer.add_tokens(
             self.add_token
@@ -80,9 +80,9 @@ class Dataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
-            ###
-            source = item["source"].split("-")[-1]
-            text = source + "[SEP]" + text
+            ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
+            # source = item["source"].split("-")[-1]
+            # text = source + "[SEP]" + text
             ###
             outputs = self.tokenizer(
                 text, add_special_tokens=True, padding="max_length", truncation=True
@@ -97,8 +97,8 @@ class Dataloader(pl.LightningDataModule):
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
                 ###
-                source = item["source"].split("-")[-1]
-                text = source + "[SEP]" + text
+                # source = item["source"].split("-")[-1]
+                # text = source + "[SEP]" + text
                 ###
                 outputs = self.tokenizer(
                     text, add_special_tokens=True, padding="max_length", truncation=True
@@ -210,7 +210,7 @@ class KfoldDataloader(pl.LightningDataModule):
             self.model_name, max_length=128
         )
         ###
-        self.add_token = ["<PERSON>", "rtt", "sampled"]
+        self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
         ###
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)
 
@@ -226,9 +226,9 @@ class KfoldDataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
-            ###
-            source = item["source"].split("-")[-1]
-            text = source + "[SEP]" + text
+            ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
+            # source = item["source"].split("-")[-1]
+            # text = source + "[SEP]" + text
             ###
             outputs = self.tokenizer(
                 text, add_special_tokens=True, padding="max_length", truncation=True
@@ -243,8 +243,8 @@ class KfoldDataloader(pl.LightningDataModule):
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
                 ###
-                source = item["source"].split("-")[-1]
-                text = source + "[SEP]" + text
+                # source = item["source"].split("-")[-1]
+                # text = source + "[SEP]" + text
                 ###
                 outputs = self.tokenizer(
                     text, add_special_tokens=True, padding="max_length", truncation=True
