@@ -40,20 +40,24 @@ if __name__ == '__main__':
     parser.add_argument('--top_k', default=3, type=int)
     parser.add_argument('--train_ratio', default=0.8, type=float)
     parser.add_argument('--loss',default="l1", type=str)
-    passer.add_argument('--project_name',default='nlp-08-sts')
-    
+    parser.add_argument('--project_name',default='nlp-08-sts')
+    parser.add_argument('--nums_folds', default=3 , type= float)
+
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument('--learning_rate','-l', default=1e-5, type=float)
     parser.add_argument('--batch_size', '-b', default=32, type=int)
-    parser.add_argument('--max_epoch', '-e', default=100, type=int)
-    parser.add_argument('--model_name', '-n', default='klue/roberta-small')
+    parser.add_argument('--max_epoch', '-e', default=1, type=int)
+    parser.add_argument('--model_name', '-n', default='monologg/koelectra-base-v3-discriminator')
     parser.add_argument('--mode', '-m', required=True)
-
     args = parser.parse_args()
 
     if args.mode == 'train' or args.mode == 't':
-        train.train(args)
+        #num_folds 인자 확인
+        if args.folds > 0 :
+            train.k_train(args)
+        else :
+            train.train(args)
         
     elif args.mode == 'exp' or args.mode == 'e':
         exp_count = int(input("실험할 횟수를 입력해주세요 "))
