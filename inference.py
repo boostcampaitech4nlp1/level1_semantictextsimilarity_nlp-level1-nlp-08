@@ -13,13 +13,13 @@ def inference(args):
 
 
     model_name = '/'.join(args.saved_model.split('/')[2:4])
+
     model = module_arch.Model(model_name, args.learning_rate)
-    model.load_from_checkpoint(args.saved_model)
-    
+    model = model.load_from_checkpoint(args.saved_model)
+
     ## Todo. .ckpt 와 .pt 파일 로드하는 경우를 구별해서 모델 가져오도록 
-    # model = torch.load(args.saved_model)
-    
-    model.eval()
+    #model.load_from_checkpoint(args.saved_model)
+    #model.eval()
     
     predictions = trainer.predict(model=model, datamodule=dataloader)
 
