@@ -22,4 +22,9 @@ def BCEWithLogitsLoss(output, target):
     return loss_func(output, target)
 
 
-loss_config = {"nll": nll_loss, "l1": L1_loss, "mse": mse_loss, "bce": BCEWithLogitsLoss}
+loss_config = {
+    "nll": nll_loss,
+    "l1": L1_loss,
+    "mse": mse_loss,
+    "bce": BCEWithLogitsLoss,
+}

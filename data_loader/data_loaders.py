@@ -24,7 +24,16 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path):
+    def __init__(
+        self,
+        model_name,
+        batch_size,
+        train_ratio,
+        shuffle,
+        train_path,
+        test_path,
+        predict_path,
+    ):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -40,10 +49,13 @@ class Dataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
-
-        ## Todo. Token 추가하면 모델 차원이 달라져서 CUDA error 발생함. 다른 방법으로 추가해야 할 듯
-        # self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+        self.tokenizer = transformers.BertTokenizer.from_pretrained(
+            self.model_name
+        )  # AutoTokenizer 이슈 있음!
+        self.add_token = ["<PERSON>"]  # 넣을 토큰 지정
+        self.new_token_count = self.tokenizer.add_tokens(
+            self.add_token
+        )  # 새롭게 추가된 토큰의 수 저장
 
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
@@ -52,23 +64,30 @@ class Dataloader(pl.LightningDataModule):
     def tokenizing(self, dataframe, reverse=0):
         data = []
 
-        for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
-            text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
+        for idx, item in tqdm(
+            dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
+        ):
+            text = "[SEP]".join(
+                [item[text_column] for text_column in self.text_columns]
+            )
+            outputs = self.tokenizer(
+                text, add_special_tokens=True, padding="max_length", truncation=True
+            )
             data.append(outputs["input_ids"])
 
         if reverse == 1:  # reverse 적용시 양방향 될 수 있도록
-            for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
-                text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
-                outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
+            for idx, item in tqdm(
+                dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
+            ):
+                text = "[SEP]".join(
+                    [item[text_column] for text_column in self.text_columns[::-1]]
+                )
+                outputs = self.tokenizer(
+                    text, add_special_tokens=True, padding="max_length", truncation=True
+                )
                 data.append(outputs["input_ids"])
 
         return data
-
-    def read_csv(self, data_type):
-        df = pd.read_csv(f"../data/{data_type}.csv")
-
-        return df
 
     def preprocessing(self, data, reverse=0):
         data = data.drop(columns=self.delete_columns)  # source column 삭제
@@ -83,7 +102,7 @@ class Dataloader(pl.LightningDataModule):
 
     def setup(self, stage="fit"):
         if stage == "fit":
-            total_data = self.read_csv("train")
+            total_data = pd.read_csv(self.train_path)
 
             train_data = total_data.sample(frac=self.train_ratio)
             val_data = total_data.drop(train_data.index)
@@ -95,9 +114,8 @@ class Dataloader(pl.LightningDataModule):
             self.val_dataset = Dataset(val_inputs, val_targets)
 
         else:
-            ## Todo. test set을 더 늘려야 함
-            test_data = self.read_csv("dev")
-            predict_data = self.read_csv("test")
+            test_data = pd.read_csv(self.test_path)
+            predict_data = pd.read_csv(self.predict_path)
 
             test_inputs, test_targets = self.preprocessing(test_data)
             predict_inputs, predict_targets = self.preprocessing(predict_data)
@@ -106,20 +124,31 @@ class Dataloader(pl.LightningDataModule):
             self.predict_dataset = Dataset(predict_inputs, predict_targets)
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle)
+        return torch.utils.data.DataLoader(
+            self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle
+        )
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size)
 
     def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.test_dataset, batch_size=self.batch_size)
+        return torch.utils.data.DataLoader(
+            self.test_dataset, batch_size=self.batch_size
+        )
 
     def predict_dataloader(self):
-        return torch.utils.data.DataLoader(self.predict_dataset, batch_size=self.batch_size)
+        return torch.utils.data.DataLoader(
+            self.predict_dataset, batch_size=self.batch_size
+        )
+
+    def new_vocab_size(self):
+        return self.new_token_count + self.tokenizer.vocab_size
 
 
 class KfoldDataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, shuffle, k: int = 3, num_splits: int = 9):
+    def __init__(
+        self, model_name, batch_size, shuffle, k: int = 3, num_splits: int = 9
+    ):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -133,8 +162,13 @@ class KfoldDataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
-        self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+        # self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+        #    model_name, max_length=128
+        # )
+        self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+            model_name, max_length=128
+        )
+        # self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
@@ -146,9 +180,15 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def tokenizing(self, dataframe):
         data = []
-        for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
-            text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
+        for idx, item in tqdm(
+            dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
+        ):
+            text = "[SEP]".join(
+                [item[text_column] for text_column in self.text_columns]
+            )
+            outputs = self.tokenizer(
+                text, add_special_tokens=True, padding="max_length", truncation=True
+            )
             data.append(outputs["input_ids"])
 
         return data
@@ -190,13 +230,19 @@ class KfoldDataloader(pl.LightningDataModule):
             self.predict_dataset = Dataset(predict_inputs, predict_targets)
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle)
+        return torch.utils.data.DataLoader(
+            self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle
+        )
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size)
 
     def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.test_dataset, batch_size=self.batch_size)
+        return torch.utils.data.DataLoader(
+            self.test_dataset, batch_size=self.batch_size
+        )
 
     def predict_dataloader(self):
-        return torch.utils.data.DataLoader(self.predict_dataset, batch_size=self.batch_size)
+        return torch.utils.data.DataLoader(
+            self.predict_dataset, batch_size=self.batch_size
+        )
