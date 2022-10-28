@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_ratio', default=0.8, type=float)
     parser.add_argument('--loss',default="l1", type=str)
     parser.add_argument('--project_name',default='nlp-08-sts')
-    parser.add_argument('--nums_folds', default=3 , type= float)
+    parser.add_argument('--nums_folds', default=1 , type= float)
 
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
@@ -53,8 +53,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.mode == 'train' or args.mode == 't':
-        #num_folds 인자 확인
-        if args.folds > 0 :
+        #num_folds 변수 확인
+        if args.nums_folds > 1 :
             train.k_train(args)
         else :
             train.train(args)
