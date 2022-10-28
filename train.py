@@ -4,7 +4,6 @@ import wandb
 import torch
 import pytorch_lightning as pl
 
-
 from data_loader.data_loaders import Dataloader, KfoldDataloader
 from pytorch_lightning.loggers import WandbLogger
 import model.model as module_arch
@@ -60,9 +59,6 @@ def train(args):
 
     trainer.save_checkpoint(save_path + "model.ckpt")
     torch.save(model, save_path + "model.pt")
-
-
-# K-Fold
 
 
 def k_train(args):

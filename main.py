@@ -21,7 +21,6 @@ torch.cuda.manual_seed_all(SEED)
 torch.backends.cudnn.benchmark = False
 torch.use_deterministic_algorithms(True)
 
-
 if __name__ == "__main__":
     # 하이퍼 파라미터 등 각종 설정값을 입력받습니다
     # 터미널 실행 예시 : python3 run.py --batch_size=64 ...
@@ -29,20 +28,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--shuffle", default=True)
-    parser.add_argument("--train_path", default="../data/train.csv")
-    parser.add_argument("--test_path", default="../data/dev.csv")
-    parser.add_argument("--predict_path", default="../data/test.csv")
-
     parser.add_argument("--monitor", default="val_loss", type=str)
     parser.add_argument("--patience", default=25, type=int)
-
     parser.add_argument("--top_k", default=3, type=int)
     parser.add_argument("--train_ratio", default=0.8, type=float)
     parser.add_argument("--loss", default="l1", type=str)
-    parser.add_argument("--project_name", default="nlp-08-sts")
+
+    parser.add_argument("--train_path", default="../data/train.csv")
+    parser.add_argument("--test_path", default="../data/dev.csv")
+    parser.add_argument("--predict_path", default="../data/test.csv")
     parser.add_argument("--save_path", default="save_models/", type=str)
+
+    parser.add_argument("--project_name", default="nlp-08-sts")
+
     parser.add_argument("--frozen", "-f", default=False)
-    parser.add_argument("--num_folds", default=1, type=int)
+    parser.add_argument("--num_folds", default=3, type=int)
+
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument("--learning_rate", "-l", default=1e-5, type=float)

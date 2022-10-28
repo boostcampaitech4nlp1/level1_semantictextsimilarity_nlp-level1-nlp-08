@@ -11,7 +11,6 @@ class Model(pl.LightningModule):
     def __init__(
         self, model_name, lr, loss, new_vocab_size, frozen
     ):  # 새로운 vocab 사이즈 설정
-
         super().__init__()
         self.save_hyperparameters()
 
@@ -21,6 +20,7 @@ class Model(pl.LightningModule):
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=model_name, num_labels=1
         )
+
         if frozen == "True":
             self.frozen()
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
