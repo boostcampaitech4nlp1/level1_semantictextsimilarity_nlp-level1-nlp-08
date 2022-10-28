@@ -33,9 +33,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_path', default='../data/train.csv')
     parser.add_argument('--test_path', default='../data/dev.csv')
     parser.add_argument('--predict_path', default='../data/test.csv')
-    parser.add_argument('--saved_model', default='/model/save_models/model.pt',
-                                         help='저장된 모델의 파일 경로를 입력해주세요. 예시: model/save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 model/save_models/model.pt')
-    parser.add_argument('--save_path', default='model/save_models/', type=str)
+    parser.add_argument('--saved_model', default='save_models/model.pt',
+                                         help='저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt')
+    parser.add_argument('--save_path', default='save_models/', type=str)
     parser.add_argument('--monitor', default='val_loss', type=str)    
     parser.add_argument('--patience', default=25, type=int)
     parser.add_argument('--monitor_mode', default='min', type=str)
