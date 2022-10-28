@@ -50,9 +50,11 @@ class Dataloader(pl.LightningDataModule):
         self.predict_dataset = None
 
         self.tokenizer = transformers.BertTokenizer.from_pretrained(
-            self.model_name
+            self.model_name, max_length=128
         )  # AutoTokenizer 이슈 있음!
-        self.add_token = ["<PERSON>"]  # 넣을 토큰 지정
+        ###
+        self.add_token = ["<PERSON>", "rtt", "sampled"]  # 넣을 토큰 지정
+        ###
         self.new_token_count = self.tokenizer.add_tokens(
             self.add_token
         )  # 새롭게 추가된 토큰의 수 저장
@@ -69,6 +71,10 @@ class Dataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
+            ###
+            source = item["source"].split("-")[-1]
+            text = source + "[SEP]" + text
+            ###
             outputs = self.tokenizer(
                 text, add_special_tokens=True, padding="max_length", truncation=True
             )
@@ -81,6 +87,10 @@ class Dataloader(pl.LightningDataModule):
                 text = "[SEP]".join(
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
+                ###
+                source = item["source"].split("-")[-1]
+                text = source + "[SEP]" + text
+                ###
                 outputs = self.tokenizer(
                     text, add_special_tokens=True, padding="max_length", truncation=True
                 )
@@ -89,7 +99,7 @@ class Dataloader(pl.LightningDataModule):
         return data
 
     def preprocessing(self, data, reverse=0):
-        data = data.drop(columns=self.delete_columns)  # source column 삭제
+        data = data.drop(columns=self.delete_columns)  # id column 삭제
 
         try:
             targets = data[self.target_columns].values.tolist()
@@ -146,7 +156,15 @@ class Dataloader(pl.LightningDataModule):
 
 class KfoldDataloader(pl.LightningDataModule):
     def __init__(
-        self, model_name, batch_size, shuffle, k: int = 3, num_splits: int = 9
+        self,
+        model_name,
+        batch_size,
+        shuffle,
+        k,
+        num_splits,
+        train_path,
+        test_path,
+        predict_path,
     ):
         super().__init__()
         self.model_name = model_name
@@ -156,6 +174,10 @@ class KfoldDataloader(pl.LightningDataModule):
         self.num_splits = num_splits
         # self.split_seed = split_seed
 
+        self.train_path = train_path
+        self.test_path = test_path
+        self.predict_path = predict_path
+
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
@@ -164,20 +186,24 @@ class KfoldDataloader(pl.LightningDataModule):
         # self.tokenizer = transformers.AutoTokenizer.from_pretrained(
         #    model_name, max_length=128
         # )
-        self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-            model_name, max_length=128
+
+        # self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+        #     model_name, max_length=128
+        # )
+
+        self.tokenizer = transformers.BertTokenizer.from_pretrained(
+            self.model_name, max_length=128
         )
-        # self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+        ###
+        self.add_token = ["<PERSON>", "rtt", "sampled"]
+        ###
+        self.new_token_count = self.tokenizer.add_tokens(self.add_token)
+
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def read_csv(self, data_type):
-        df = pd.read_csv(f"../data/{data_type}.csv")
-
-        return df
-
-    def tokenizing(self, dataframe):
+    def tokenizing(self, dataframe, reverse=0):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -185,15 +211,35 @@ class KfoldDataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
+            ###
+            source = item["source"].split("-")[-1]
+            text = source + "[SEP]" + text
+            ###
             outputs = self.tokenizer(
                 text, add_special_tokens=True, padding="max_length", truncation=True
             )
             data.append(outputs["input_ids"])
 
+        if reverse == 1:  # reverse 적용시 양방향 될 수 있도록
+            for idx, item in tqdm(
+                dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
+            ):
+                text = "[SEP]".join(
+                    [item[text_column] for text_column in self.text_columns[::-1]]
+                )
+                ###
+                source = item["source"].split("-")[-1]
+                text = source + "[SEP]" + text
+                ###
+                outputs = self.tokenizer(
+                    text, add_special_tokens=True, padding="max_length", truncation=True
+                )
+                data.append(outputs["input_ids"])
+
         return data
 
     def preprocessing(self, data):
-        data = data.drop(columns=self.delete_columns)  # source column 삭제
+        data = data.drop(columns=self.delete_columns)
 
         try:
             targets = data[self.target_columns].values.tolist()
@@ -205,7 +251,7 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def setup(self, stage="fit"):
         if stage == "fit":
-            total_data = self.read_csv("train")
+            total_data = pd.read_csv(self.train_path)
             total_inputs, total_targets = self.preprocessing(total_data)
             total_dataset = Dataset(total_inputs, total_targets)
 
@@ -219,8 +265,8 @@ class KfoldDataloader(pl.LightningDataModule):
             self.val_dataset = [total_dataset[x] for x in val_indexes]
 
         else:
-            test_data = self.read_csv("dev")
-            predict_data = self.read_csv("test")
+            test_data = pd.read_csv(self.test_path)
+            predict_data = pd.read_csv(self.predict_path)
 
             test_inputs, test_targets = self.preprocessing(test_data)
             predict_inputs, predict_targets = self.preprocessing(predict_data)
@@ -245,3 +291,6 @@ class KfoldDataloader(pl.LightningDataModule):
         return torch.utils.data.DataLoader(
             self.predict_dataset, batch_size=self.batch_size
         )
+
+    def new_vocab_size(self):
+        return self.new_token_count + self.tokenizer.vocab_size

@@ -73,25 +73,32 @@ def k_train(args):
     )
     project_name = args.project_name + project_name
 
-    # TODO : dataloader에서 new_vocab_size() 정의 후 이를 반환 받아 인자로 넘겨야 함
+    k_datamodule = KfoldDataloader(
+        args.model_name,
+        args.batch_size,
+        args.shuffle,
+        args.num_folds,
+        5,
+        args.train_path,
+        args.test_path,
+        args.predict_path,
+    )
+
     Kmodel = module_arch.Model(
         args.model_name,
         args.learning_rate,
         args.loss,
-        35000,  # dataloader.new_vocab_size(),
+        k_datamodule.new_vocab_size(),
         args.frozen,
     )
 
     results = []
-    nums_folds = args.nums_folds
+    num_folds = args.num_folds
 
-    for k in range(nums_folds):
-        k_datamodule = KfoldDataloader(
-            args.model_name, args.batch_size, args.shuffle, k=k, num_splits=nums_folds
-        )
+    for k in range(num_folds):
         k_datamodule.prepare_data()
         k_datamodule.setup()
-        wandb_logger = WandbLogger(project=f"{project_name}")
+        wandb_logger = WandbLogger(project=project_name, name=f"{k}th_fold")
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -122,7 +129,7 @@ def k_train(args):
         torch.save(Kmodel, save_model)
 
     result = [x["test_pearson"] for x in results]
-    score = sum(result) / nums_folds
+    score = sum(result) / num_folds
     print(score)
 
 

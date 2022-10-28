@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--project_name", default="nlp-08-sts")
     parser.add_argument("--save_path", default="save_models/", type=str)
     parser.add_argument("--frozen", "-f", default=False)
-    parser.add_argument("--nums_folds", default=1, type=int)
+    parser.add_argument("--num_folds", default=1, type=int)
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument("--learning_rate", "-l", default=1e-5, type=float)
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     if args.mode == "train" or args.mode == "t":
         # num_folds 변수 확인
-        if args.nums_folds > 1:
+        if args.num_folds > 1:
             train.k_train(args)
         else:
             train.train(args)
