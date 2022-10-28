@@ -14,7 +14,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 def train(args):
-    project_name = re.sub('/','_',f'{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}')
+    project_name = re.sub('/','_',f'{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}')    
+    project_name = args.project_name + project_name
     dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle, args.train_path, args.test_path, args.predict_path)
     model = module_arch.Model(args.model_name, args.learning_rate, args.loss)
     wandb_logger = WandbLogger(project=project_name)
@@ -62,6 +63,7 @@ def train(args):
 
 def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
     project_name = re.sub('/','_',f'{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}')
+    project_name = args.project_name + project_name
     
     sweep_config = {
         'method': 'bayes',  # random: 임의의 값의 parameter 세트를 선택, #bayes : 베이지안 최적화
