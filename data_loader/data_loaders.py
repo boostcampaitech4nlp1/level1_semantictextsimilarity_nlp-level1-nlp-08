@@ -49,9 +49,18 @@ class Dataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
 
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(
-            self.model_name, max_length=128
-        )  # AutoTokenizer 이슈 있음!
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            model_name, max_length=128
+        )
+
+        # self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+        #     model_name, max_length=128
+        # )
+
+        # self.tokenizer = transformers.BertTokenizerFast.from_pretrained(
+        #     self.model_name, max_length=128
+        # )
+
         ###
         self.add_token = ["<PERSON>", "rtt", "sampled"]  # 넣을 토큰 지정
         ###
@@ -102,7 +111,13 @@ class Dataloader(pl.LightningDataModule):
         data = data.drop(columns=self.delete_columns)  # id column 삭제
 
         try:
-            targets = data[self.target_columns].values.tolist()
+            if reverse == 1:
+                targets = (
+                    data[self.target_columns].values.tolist()
+                    + data[self.target_columns].values.tolist()
+                )
+            else:
+                targets = data[self.target_columns].values.tolist()
         except:
             targets = []
         inputs = self.tokenizing(data, reverse)
@@ -238,14 +253,20 @@ class KfoldDataloader(pl.LightningDataModule):
 
         return data
 
-    def preprocessing(self, data):
+    def preprocessing(self, data, reverse=0):
         data = data.drop(columns=self.delete_columns)
 
         try:
-            targets = data[self.target_columns].values.tolist()
+            if reverse == 1:
+                targets = (
+                    data[self.target_columns].values.tolist()
+                    + data[self.target_columns].values.tolist()
+                )
+            else:
+                targets = data[self.target_columns].values.tolist()
         except:
             targets = []
-        inputs = self.tokenizing(data)
+        inputs = self.tokenizing(data, reverse)
 
         return inputs, targets
 
