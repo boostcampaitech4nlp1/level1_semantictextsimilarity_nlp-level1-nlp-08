@@ -25,8 +25,9 @@ def train(args):
     trainer.test(model=model, datamodule=dataloader)
     
     ## Todo. ckpt형식으로 저장할 수 있게끔 개선
-    save_model = f'{args.save_path}{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}.pt'
-    torch.save(model, save_model)
+    save_model = f'{args.save_path}{args.model_name}/epoch_{args.max_epoch}_batchsize_{args.batch_size}'
+    trainer.save_checkpoint(save_model + '.ckpt')
+    torch.save(model, save_model + '.pt')
     
 # K-Fold
 
