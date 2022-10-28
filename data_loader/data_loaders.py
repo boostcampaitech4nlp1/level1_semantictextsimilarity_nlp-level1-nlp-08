@@ -132,6 +132,9 @@ class KfoldDataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
         
+        #self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
+        #monologg/koelectra-base-v3-discriminator 사용
+        
         self.tokenizer = transformers.ElectraTokenizer.from_pretrained(model_name, max_length=128)
         #self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
 
