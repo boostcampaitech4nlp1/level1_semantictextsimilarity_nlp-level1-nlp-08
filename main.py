@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--loss", default="l1", type=str)
     parser.add_argument("--project_name", default="nlp-08-sts")
     parser.add_argument("--save_path", default="save_models/", type=str)
-
+    parser.add_argument("--frozen", "-f", default=False)
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument("--learning_rate", "-l", default=1e-5, type=float)

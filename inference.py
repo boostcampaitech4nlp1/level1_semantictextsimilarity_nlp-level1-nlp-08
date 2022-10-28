@@ -22,7 +22,11 @@ def inference(args):
             0
         ]  # huggingface에 저장된 모델명을 parsing함
         model = module_arch.Model(
-            model_name, args.learning_rate, args.loss, dataloader.new_vocab_size()
+            model_name,
+            args.learning_rate,
+            args.loss,
+            dataloader.new_vocab_size(),
+            args.frozen,
         )  # 새롭게 추가한 토큰 사이즈 반영
 
         model = model.load_from_checkpoint(args.saved_model)

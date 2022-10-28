@@ -8,17 +8,34 @@ from . import loss as loss_module
 
 
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr, loss, new_vocab_size):  # 새로운 vocab 사이즈 설정
+    def __init__(
+        self, model_name, lr, loss, new_vocab_size, frozen
+    ):  # 새로운 vocab 사이즈 설정
+
         super().__init__()
         self.save_hyperparameters()
 
         self.model_name = model_name
         self.lr = lr
+
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=model_name, num_labels=1
         )
+        if frozen == "True":
+            self.frozen()
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
         self.loss_func = loss_module.loss_config[loss]
+
+    def frozen(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
+        for name, param in self.plm.named_parameters():
+            param.requires_grad = False
+            if name in [
+                "classifier.dense.weight",
+                "classifier.dense.bias",
+                "classifier.out_proj.weight",
+                "classifier.out_proj.bias",
+            ]:
+                param.requires_grad = True
 
     def forward(self, x):
         x = self.plm(x)["logits"]

@@ -24,7 +24,11 @@ def train(args):
         args.predict_path,
     )
     model = module_arch.Model(
-        args.model_name, args.learning_rate, args.loss, dataloader.new_vocab_size()
+        args.model_name,
+        args.learning_rate,
+        args.loss,
+        dataloader.new_vocab_size(),
+        args.frozen,
     )  # 새롭게 추가한 토큰 사이즈 반영
 
     wandb_logger = WandbLogger(project=args.project_name)
@@ -144,7 +148,11 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
             args.predict_path,
         )
         model = module_arch.Model(
-            args.model_name, config.lr, config.loss, dataloader.new_vocab_size()
+            args.model_name,
+            config.lr,
+            config.loss,
+            dataloader.new_vocab_size(),
+            args.frozen,
         )
 
         wandb_logger = WandbLogger(project=args.project_name)
