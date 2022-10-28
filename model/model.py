@@ -17,7 +17,7 @@ class Model(pl.LightningModule):
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
         self.loss_func = loss_module.L1_loss
         self.frozen()
-        self.check()
+ 
         
     def frozen(self):#추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
         for name,para in self.plm.named_parameters():
@@ -25,10 +25,7 @@ class Model(pl.LightningModule):
             if name in ['classifier.dense.weight','classifier.dense.bias',\
 'classifier.out_proj.weight','classifier.out_proj.bias']:
                 para.requires_grad=True
-    def check(self):
-        for name,param in self.plm.named_parameters():#self.linearname
-            print(name,param.requires_grad)
-        print("hello")
+
     def forward(self, x):
         x = self.plm(x)['logits']
 
@@ -43,9 +40,7 @@ class Model(pl.LightningModule):
         
         return loss
 
-    def training_epoch_end(self,outputs):
-        self.check()
-        print('saklfjkljdfskljkl')
+
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
