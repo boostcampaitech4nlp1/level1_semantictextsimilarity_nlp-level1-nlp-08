@@ -11,8 +11,8 @@ def inference(args):
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
 
     if args.saved_model.split('.')[-1] == 'ckpt':
-        model_name = '/'.join(args.saved_model.split('/')[2:4])
-        model = module_arch.Model(model_name, args.learning_rate)
+        model_name = '/'.join(args.saved_model.split('/')[1:3]).split('_')[0]   # huggingface에 저장된 모델명을 parsing함
+        model = module_arch.Model(model_name, args.learning_rate, args.loss)
         model = model.load_from_checkpoint(args.saved_model)
     elif args.saved_model.split('.')[-1] == 'pt':
         model = torch.load(args.saved_model)
