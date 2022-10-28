@@ -13,7 +13,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 def train(args):
     dataloader = Dataloader(args.model_name, args.batch_size, args.train_ratio, args.shuffle,
                             args.train_path, args.test_path, args.predict_path)
-    model = module_arch.Model(args.model_name, args.learning_rate)
+    model = module_arch.Model(args.model_name, args.learning_rate,args.frozen)
     wandb_logger = WandbLogger(project=args.project_name)
     trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
                          callbacks=[

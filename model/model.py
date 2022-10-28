@@ -16,7 +16,9 @@ class Model(pl.LightningModule):
         self.lr = lr
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
         self.loss_func = loss_module.L1_loss
-        self.frozen()
+        if frozen=='True':
+            self.frozen()
+        
  
         
     def frozen(self):#추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
