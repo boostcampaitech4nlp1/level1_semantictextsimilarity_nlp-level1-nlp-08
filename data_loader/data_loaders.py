@@ -118,22 +118,23 @@ class Dataloader(pl.LightningDataModule):
     
     
 class KfoldDataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, shuffle, k: int=3, num_splits: int=9):
+    def __init__(self, model_name, batch_size, shuffle, k: int=3, num_splits: int=9, split_seed : int =42):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.k = k
         self.num_splits = num_splits
-        # self.split_seed = split_seed
+        self.split_seed = split_seed
         
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
         self.predict_dataset = None
         
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
-        self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+        self.tokenizer = transformers.ElectraTokenizer.from_pretrained(model_name, max_length=128)
+        #self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+
         self.target_columns = ['label']
         self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
