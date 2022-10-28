@@ -49,9 +49,18 @@ class Dataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
 
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(
-            self.model_name, max_length=128
-        )  # AutoTokenizer 이슈 있음!
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            model_name, max_length=128
+        )
+
+        # self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+        #     model_name, max_length=128
+        # )
+
+        # self.tokenizer = transformers.BertTokenizerFast.from_pretrained(
+        #     self.model_name, max_length=128
+        # )
+
         ###
         self.add_token = ["<PERSON>", "rtt", "sampled"]  # 넣을 토큰 지정
         ###
@@ -63,7 +72,7 @@ class Dataloader(pl.LightningDataModule):
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def tokenizing(self, dataframe, reverse=0):
+    def tokenizing(self, dataframe, reverse=1):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
