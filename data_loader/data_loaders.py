@@ -72,7 +72,7 @@ class Dataloader(pl.LightningDataModule):
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def tokenizing(self, dataframe, reverse=1):
+    def tokenizing(self, dataframe, reverse=0):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -111,7 +111,13 @@ class Dataloader(pl.LightningDataModule):
         data = data.drop(columns=self.delete_columns)  # id column 삭제
 
         try:
-            targets = data[self.target_columns].values.tolist()
+            if reverse == 1:
+                targets = (
+                    data[self.target_columns].values.tolist()
+                    + data[self.target_columns].values.tolist()
+                )
+            else:
+                targets = data[self.target_columns].values.tolist()
         except:
             targets = []
         inputs = self.tokenizing(data, reverse)
@@ -247,14 +253,20 @@ class KfoldDataloader(pl.LightningDataModule):
 
         return data
 
-    def preprocessing(self, data):
+    def preprocessing(self, data, reverse=0):
         data = data.drop(columns=self.delete_columns)
 
         try:
-            targets = data[self.target_columns].values.tolist()
+            if reverse == 1:
+                targets = (
+                    data[self.target_columns].values.tolist()
+                    + data[self.target_columns].values.tolist()
+                )
+            else:
+                targets = data[self.target_columns].values.tolist()
         except:
             targets = []
-        inputs = self.tokenizing(data)
+        inputs = self.tokenizing(data, reverse)
 
         return inputs, targets
 
