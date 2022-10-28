@@ -48,12 +48,19 @@ class Dataloader(pl.LightningDataModule):
         self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
 
-    def tokenizing(self, dataframe):
+    def tokenizing(self, dataframe,  reverse = 0):
         data = []
+        
         for idx, item in tqdm(dataframe.iterrows(), desc='tokenizing', total=len(dataframe)):
             text = '[SEP]'.join([item[text_column] for text_column in self.text_columns])
             outputs = self.tokenizer(text, add_special_tokens=True, padding='max_length', truncation=True)
             data.append(outputs['input_ids'])
+        
+        if reverse==1: # reverse 적용시 양방향 될 수 있도록
+            for idx, item in tqdm(dataframe.iterrows(), desc='tokenizing', total=len(dataframe)):
+                text = '[SEP]'.join([item[text_column] for text_column in self.text_columns[::-1]])
+                outputs = self.tokenizer(text, add_special_tokens=True, padding='max_length', truncation=True)
+                data.append(outputs['input_ids'])
             
         return data
     
@@ -62,14 +69,14 @@ class Dataloader(pl.LightningDataModule):
         
         return df
     
-    def preprocessing(self, data):
+    def preprocessing(self, data, reverse = 0):
         data = data.drop(columns=self.delete_columns) # source column 삭제
         
         try:
             targets = data[self.target_columns].values.tolist()
         except:
             targets = []
-        inputs = self.tokenizing(data)
+        inputs = self.tokenizing(data, reverse)
         
         return inputs, targets
     
