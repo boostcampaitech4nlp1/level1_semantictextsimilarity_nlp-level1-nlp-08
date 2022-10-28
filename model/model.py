@@ -7,13 +7,14 @@ import pytorch_lightning as pl
 from . import loss as loss_module
 
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr, loss):
+    def __init__(self, model_name, lr, loss, new_vocab_size): # 새로운 vocab 사이즈 설정
         super().__init__()
         self.save_hyperparameters()
         
         self.model_name = model_name
         self.lr = lr
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
+        self.plm.resize_token_embeddings(new_vocab_size) # 임베딩 차원 재조정
         self.loss_func = loss_module.loss_config[loss]
             
     def forward(self, x):

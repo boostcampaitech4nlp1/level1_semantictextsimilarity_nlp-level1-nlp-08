@@ -23,7 +23,8 @@ def train(args):
         args.test_path,
         args.predict_path,
     )
-    model = module_arch.Model(args.model_name, args.learning_rate, args.loss)
+    model = module_arch.Model(args.model_name, args.learning_rate, args.loss, dataloader.new_vocab_size())  # 새롭게 추가한 토큰 사이즈 반영
+    
     wandb_logger = WandbLogger(project=args.project_name)
     save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}/"
     trainer = pl.Trainer(

@@ -39,16 +39,18 @@ class Dataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
         
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, max_length=128)
+        self.tokenizer=transformers.BertTokenizer.from_pretrained(self.model_name)  # AutoTokenizer 이슈 있음!
+        self.add_token=["<PERSON>"]  # 넣을 토큰 지정
+        self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
         
-        ## Todo. Token 추가하면 모델 차원이 달라져서 CUDA error 발생함. 다른 방법으로 추가해야 할 듯
-        # self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+        # 잘 나오는지 확인용
+        # print(self.tokenizer("<PERSON>"))
 
         self.target_columns = ['label']
         self.delete_columns = ['id']
         self.text_columns = ['sentence_1', 'sentence_2']
 
-    def tokenizing(self, dataframe,  reverse = 0):
+    def tokenizing(self, dataframe,  reverse = 0): 
         data = []
         
         for idx, item in tqdm(dataframe.iterrows(), desc='tokenizing', total=len(dataframe)):
@@ -115,6 +117,10 @@ class Dataloader(pl.LightningDataModule):
     
     def predict_dataloader(self):
         return torch.utils.data.DataLoader(self.predict_dataset, batch_size=self.batch_size)
+    
+    # 추가 : 새로운 vocab 사이즈 반환
+    def new_vocab_size(self):
+        return self.new_token_count + self.tokenizer.vocab_size
     
     
 class KfoldDataloader(pl.LightningDataModule):

@@ -12,7 +12,7 @@ def inference(args):
 
     if args.saved_model.split('.')[-1] == 'ckpt':
         model_name = '/'.join(args.saved_model.split('/')[1:3]).split('_')[0]   # huggingface에 저장된 모델명을 parsing함
-        model = module_arch.Model(model_name, args.learning_rate, args.loss)
+        model = module_arch.Model(model_name, args.learning_rate, args.loss, dataloader.new_vocab_size())  # 새롭게 추가한 토큰 사이즈 반영
         model = model.load_from_checkpoint(args.saved_model)
     elif args.saved_model.split('.')[-1] == 'pt':
         model = torch.load(args.saved_model)
