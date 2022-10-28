@@ -12,12 +12,12 @@ def inference(args):
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
 
 
-    model_name = '/'.join(args.saved_model.split('/')[2:4])
-    model = module_arch.Model(model_name, args.learning_rate)
-    model.load_from_checkpoint(args.saved_model)
+    # model_name = '/'.join(args.saved_model.split('/')[2:4])
+    # model = module_arch.Model(model_name, args.learning_rate)
+    # model.load_from_checkpoint(args.saved_model)
     
     ## Todo. .ckpt 와 .pt 파일 로드하는 경우를 구별해서 모델 가져오도록 
-    # model = torch.load(args.saved_model)
+    model = torch.load(args.saved_model)
     
     model.eval()
     
