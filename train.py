@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 
 
-from data_loader.data_loaders import Dataloader
+from data_loader.data_loaders import Dataloader, KfoldDataloader
 from pytorch_lightning.loggers import WandbLogger
 import model.model as module_arch
 import utils.utils as utils
@@ -64,31 +64,66 @@ def train(args):
 
 # K-Fold
 
-# Kmodel = Model(args.model_name, args.learning_rate)
 
-# results = []
-# nums_folds = 3
+def k_train(args):
+    project_name = re.sub(
+        "/",
+        "_",
+        f"{args.model_name}_epoch_{args.max_epoch}_batchsize_{args.batch_size}",
+    )
+    project_name = args.project_name + project_name
 
-# for k in range(nums_folds):
-#     datamodule = KfoldDataloader(args.model_name, args.batch_size, args.shuffle, k=k, num_splits=nums_folds)
-#     datamodule.prepare_data()
-#     datamodule.setup()
+    # TODO : dataloader에서 new_vocab_size() 정의 후 이를 반환 받아 인자로 넘겨야 함
+    Kmodel = module_arch.Model(
+        args.model_name,
+        args.learning_rate,
+        args.loss,
+        35000,  # dataloader.new_vocab_size(),
+        args.frozen,
+    )
 
-#     checkpoint_callback = ModelCheckpoint(dirpath='model_save/', filename='{k}_fold_{epoch:02d}',
-#                                           save_top_k=3, save_last=False, mode='max',
-#                                           monitor='val_pearson')
-#     earlystopping = EarlyStopping(monitor="val_pearson", patience=10, verbose=False)
+    results = []
+    nums_folds = args.nums_folds
 
-#     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger,
-#                          callbacks=[checkpoint_callback, earlystopping], accelerator='gpu', devices=1)
-#     trainer.fit(model=Kmodel, datamodule=datamodule)
-#     score = trainer.test(model=Kmodel, datamodule=datamodule)
+    for k in range(nums_folds):
+        k_datamodule = KfoldDataloader(
+            args.model_name, args.batch_size, args.shuffle, k=k, num_splits=nums_folds
+        )
+        k_datamodule.prepare_data()
+        k_datamodule.setup()
+        wandb_logger = WandbLogger(project=f"{project_name}")
+        trainer = pl.Trainer(
+            accelerator="gpu",
+            devices=1,
+            max_epochs=args.max_epoch,
+            log_every_n_steps=1,
+            logger=wandb_logger,
+            callbacks=[
+                utils.early_stop(
+                    monitor=utils.monitor_config[args.monitor]["monitor"],
+                    patience=args.patience,
+                    mode=utils.monitor_config[args.monitor]["mode"],
+                ),
+                utils.best_save(
+                    save_path=args.save_path + f"{args.model_name}/",
+                    top_k=args.top_k,
+                    monitor=utils.monitor_config[args.monitor]["monitor"],
+                    mode=utils.monitor_config[args.monitor]["mode"],
+                    filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
+                ),
+            ],
+        )
 
-#     results.extend(score)
+        trainer.fit(model=Kmodel, datamodule=k_datamodule)
+        score = trainer.test(model=Kmodel, datamodule=k_datamodule)
+        wandb.finish()
+        results.extend(score)
+        save_model = f"{args.save_path}{args.model_name}_fold_{k}_epoch_{args.max_epoch}_batchsize_{args.batch_size}.pt"
+        torch.save(Kmodel, save_model)
 
-#     result = [x['test_pearson'] for x in results]
-#     score = sum(result) / nums_folds
-#     print('K-fold Test pearson score: ', score)
+    result = [x["test_pearson"] for x in results]
+    score = sum(result) / nums_folds
+    print(score)
 
 
 def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
