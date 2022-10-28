@@ -10,7 +10,6 @@ def inference(args):
                             args.train_path, args.test_path, args.predict_path)
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
 
-    ## Todo. .ckpt 와 .pt 파일 로드하는 경우를 구별해서 모델 가져오도록 
     if args.saved_model.split('.')[-1] == 'ckpt':
         model_name = '/'.join(args.saved_model.split('/')[2:4])
         model = module_arch.Model(model_name, args.learning_rate)
