@@ -6,8 +6,8 @@ def early_stop(monitor, patience, mode):
     early_stop_callback = EarlyStopping(monitor=monitor, min_delta=0.00, patience=patience, verbose=False, mode=mode)
     return early_stop_callback
 
-def best_save(save_path, top_k, monitor):
-    checkpoint_callback = ModelCheckpoint(dirpath=save_path, save_top_k=top_k, monitor=monitor)
+def best_save(save_path, top_k, monitor, filename):
+    checkpoint_callback = ModelCheckpoint(dirpath=save_path, save_top_k=top_k, monitor=monitor, filename=filename)
     return checkpoint_callback
 
 def get_checkpoint_callback(criterion, save_frequency, prefix="checkpoint", use_modelcheckpoint_filename=False):
