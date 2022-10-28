@@ -4,9 +4,7 @@ import pytorch_lightning as pl
 
 
 def early_stop(monitor, patience, mode):
-    early_stop_callback = EarlyStopping(
-        monitor=monitor, min_delta=0.00, patience=patience, verbose=False, mode=mode
-    )
+    early_stop_callback = EarlyStopping(monitor=monitor, min_delta=0.00, patience=patience, verbose=False, mode=mode)
     return early_stop_callback
 
 
@@ -21,19 +19,13 @@ def best_save(save_path, top_k, monitor, mode, filename):
     return checkpoint_callback
 
 
-def get_checkpoint_callback(
-    criterion, save_frequency, prefix="checkpoint", use_modelcheckpoint_filename=False
-):
+def get_checkpoint_callback(criterion, save_frequency, prefix="checkpoint", use_modelcheckpoint_filename=False):
 
     checkpoint_callback = None
     if criterion == "step":
-        checkpoint_callback = CheckpointEveryNSteps(
-            save_frequency, prefix, use_modelcheckpoint_filename
-        )
+        checkpoint_callback = CheckpointEveryNSteps(save_frequency, prefix, use_modelcheckpoint_filename)
     elif criterion == "epoch":
-        checkpoint_callback = CheckpointEveryNEpochs(
-            save_frequency, prefix, use_modelcheckpoint_filename
-        )
+        checkpoint_callback = CheckpointEveryNEpochs(save_frequency, prefix, use_modelcheckpoint_filename)
 
     return checkpoint_callback
 
