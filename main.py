@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_epoch', '-e', default=100, type=int)
     parser.add_argument('--project_name', '-n', default='nlp-08-sts')
     parser.add_argument('--mode', '-m', required=True)
-
+    parser.add_argument('--frozen','-f',default=False)
     args = parser.parse_args()
 
     if args.mode == 'train' or args.mode == 't':

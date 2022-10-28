@@ -8,7 +8,7 @@ from . import loss as loss_module
 
 
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr):
+    def __init__(self, model_name, lr,frozen):
         super().__init__()
         self.save_hyperparameters()
         
