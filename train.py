@@ -46,7 +46,7 @@ def k_train(args):
         k_datamodule = KfoldDataloader(args.model_name, args.batch_size, args.shuffle, k=k, num_splits=nums_folds)
         k_datamodule.prepare_data()
         k_datamodule.setup()
-        wandb_logger = WandbLogger(project=f'{project_name}_test')
+        wandb_logger = WandbLogger(project=f'{project_name}')
         trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=args.max_epoch, log_every_n_steps=1, logger=wandb_logger,
                             callbacks=[
                                 utils.early_stop(monitor=utils.monitor_config[args.monitor]["monitor"], patience=args.patience, mode=utils.monitor_config[args.monitor]["mode"]),
