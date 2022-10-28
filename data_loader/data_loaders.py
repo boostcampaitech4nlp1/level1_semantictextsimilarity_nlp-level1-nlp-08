@@ -147,7 +147,15 @@ class Dataloader(pl.LightningDataModule):
 
 class KfoldDataloader(pl.LightningDataModule):
     def __init__(
-        self, model_name, batch_size, shuffle, k: int = 3, num_splits: int = 9
+        self,
+        model_name,
+        batch_size,
+        shuffle,
+        k,  # fold 번호
+        num_splits,  # fold 개수
+        train_path,
+        test_path,
+        predict_path,
     ):
         super().__init__()
         self.model_name = model_name
@@ -157,26 +165,26 @@ class KfoldDataloader(pl.LightningDataModule):
         self.num_splits = num_splits
         # self.split_seed = split_seed
 
+        self.train_path = train_path
+        self.test_path = test_path
+        self.predict_path = predict_path
+
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
         self.predict_dataset = None
 
-        # self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-        #    model_name, max_length=128
-        # )
         self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-            model_name, max_length=128
-        )
-        # self.tokenizer.add_tokens(["<PERSON>"], special_tokens=False)
+            self.model_name
+        )  # AutoTokenizer 이슈 있음!
+        self.add_token = ["<PERSON>"]  # 넣을 토큰 지정
+        self.new_token_count = self.tokenizer.add_tokens(
+            self.add_token
+        )  # 새롭게 추가된 토큰의 수 저장
+
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
-
-    def read_csv(self, data_type):
-        df = pd.read_csv(f"../data/{data_type}.csv")
-
-        return df
 
     def tokenizing(self, dataframe):
         data = []
@@ -206,7 +214,7 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def setup(self, stage="fit"):
         if stage == "fit":
-            total_data = self.read_csv("train")
+            total_data = pd.read_csv(self.train_path)
             total_inputs, total_targets = self.preprocessing(total_data)
             total_dataset = Dataset(total_inputs, total_targets)
 
@@ -220,8 +228,8 @@ class KfoldDataloader(pl.LightningDataModule):
             self.val_dataset = [total_dataset[x] for x in val_indexes]
 
         else:
-            test_data = self.read_csv("dev")
-            predict_data = self.read_csv("test")
+            test_data = pd.read_csv(self.test_path)
+            predict_data = pd.read_csv(self.predict_path)
 
             test_inputs, test_targets = self.preprocessing(test_data)
             predict_inputs, predict_targets = self.preprocessing(predict_data)
