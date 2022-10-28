@@ -36,7 +36,7 @@ def train(args):
             utils.early_stop(
                 monitor=utils.monitor_config[args.monitor]["monitor"],
                 patience=args.patience,
-                mode=args.monitor_mode,
+                mode=utils.monitor_config[args.monitor]["mode"],
             ),
             utils.best_save(
                 save_path=save_path,
