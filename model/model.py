@@ -6,16 +6,15 @@ import pytorch_lightning as pl
 
 from . import loss as loss_module
 
-
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr):
+    def __init__(self, model_name, lr, loss):
         super().__init__()
         self.save_hyperparameters()
         
         self.model_name = model_name
         self.lr = lr
         self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
-        self.loss_func = loss_module.L1_loss
+        self.loss_func = loss_module.loss_config[loss]
             
     def forward(self, x):
         x = self.plm(x)['logits']
@@ -58,9 +57,9 @@ class Model(pl.LightningModule):
 
 
 class HeadClassifier(nn.Module):
-    def __init__(self, hidden_dim=1024, drop_out_rate=0.2):
+    def __init__(self,input_dim, hidden_dim, drop_out_rate=0.2):
         super().__init__()
-        self.dense = nn.Linear(768, hidden_dim)
+        self.dense = nn.Linear(input_dim, hidden_dim)
         self.dropout = nn.Dropout(drop_out_rate)
         self.output = nn.Linear(hidden_dim, 1)
 
@@ -74,20 +73,19 @@ class HeadClassifier(nn.Module):
         
         return x
 
-class RoBERTa_Base_Model(pl.LightningModule):
-    '''
-    model_name: 'klue/roberta-base'
-    '''
-    def __init__(self, model_name, lr):
+class BaseModel(pl.LightningModule): # Base 모델로 이름 변경
+
+    def __init__(self, model_name, lr, loss):
         super().__init__()
         self.save_hyperparameters()
 
         self.model_name = model_name
         self.lr = lr
-
+        
         self.plm = transformers.AutoModel.from_pretrained(pretrained_model_name_or_path=model_name)
-        self.classifier = HeadClassifier(1024, 0.2)
-        self.loss_func = loss_module.L1_loss
+        input_dim = transformers.AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name).hidden_size # 히든벡터의 차원을 input으로 사용
+        self.classifier = HeadClassifier(input_dim, 1024, 0.2)
+        self.loss_func = loss_config[loss]
 
     def forward(self, x):
         x = self.plm(x)[0]

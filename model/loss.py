@@ -16,3 +16,10 @@ def mse_loss(output, target):
 def BCEWithLogitsLoss(output, target):
     loss_func = nn.BCEWithLogitsLoss()
     return loss_func(output, target)
+
+loss_config={
+    "nll":nll_loss,
+    "l1":L1_loss,
+    "mse":mse_loss,
+    "bce":BCEWithLogitsLoss
+}
