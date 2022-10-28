@@ -2,6 +2,7 @@ import re
 
 import wandb
 import torch
+import random
 import pytorch_lightning as pl
 
 
@@ -84,6 +85,8 @@ def k_train(args):
 
     results = []
     nums_folds = args.nums_folds
+    random_count = random.randrange(1, 1000)
+    random_count = str(random_count).zfill(4)
 
     for k in range(nums_folds):
         k_datamodule = KfoldDataloader(
@@ -117,6 +120,7 @@ def k_train(args):
         trainer.fit(model=Kmodel, datamodule=k_datamodule)
         score = trainer.test(model=Kmodel, datamodule=k_datamodule)
         wandb.finish()
+
         results.extend(score)
         save_model = f"{args.save_path}{args.model_name}_fold_{k}_epoch_{args.max_epoch}_batchsize_{args.batch_size}.pt"
         torch.save(Kmodel, save_model)
