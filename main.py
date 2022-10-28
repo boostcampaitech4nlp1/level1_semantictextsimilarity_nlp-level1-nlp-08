@@ -32,19 +32,15 @@ if __name__ == "__main__":
     parser.add_argument("--train_path", default="../data/train.csv")
     parser.add_argument("--test_path", default="../data/dev.csv")
     parser.add_argument("--predict_path", default="../data/test.csv")
-    parser.add_argument(
-        "--saved_model",
-        default="save_models/model.pt",
-        help="저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt",
-    )
-    
+
     parser.add_argument("--monitor", default="val_loss", type=str)
     parser.add_argument("--patience", default=25, type=int)
-    # parser.add_argument('--monitor_mode', default='min', type=str)
+
     parser.add_argument("--top_k", default=3, type=int)
     parser.add_argument("--train_ratio", default=0.8, type=float)
     parser.add_argument("--loss", default="l1", type=str)
     parser.add_argument("--project_name", default="nlp-08-sts")
+    parser.add_argument("--save_path", default="save_models/", type=str)
 
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
@@ -53,7 +49,12 @@ if __name__ == "__main__":
     parser.add_argument("--max_epoch", "-e", default=100, type=int)
     parser.add_argument("--model_name", "-n", default="klue/roberta-small")
     parser.add_argument("--mode", "-m", required=True)
-    parser.add_argument("--save_path","-s", default="save_models/", type=str)
+    parser.add_argument(
+        "--saved_model",
+        "-s",
+        default="save_models/model.pt",
+        help="저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt",
+    )
     args = parser.parse_args()
 
     if args.mode == "train" or args.mode == "t":
