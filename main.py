@@ -37,7 +37,7 @@ if __name__ == "__main__":
         default="save_models/model.pt",
         help="저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt",
     )
-    parser.add_argument("--save_path", default="save_models/", type=str)
+    
     parser.add_argument("--monitor", default="val_loss", type=str)
     parser.add_argument("--patience", default=25, type=int)
     # parser.add_argument('--monitor_mode', default='min', type=str)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_epoch", "-e", default=100, type=int)
     parser.add_argument("--model_name", "-n", default="klue/roberta-small")
     parser.add_argument("--mode", "-m", required=True)
-
+    parser.add_argument("--save_path","-s", default="save_models/", type=str)
     args = parser.parse_args()
 
     if args.mode == "train" or args.mode == "t":
