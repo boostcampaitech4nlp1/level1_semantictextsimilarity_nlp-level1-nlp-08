@@ -5,6 +5,7 @@ import transformers
 from sklearn.model_selection import KFold
 from tqdm.auto import tqdm
 from sklearn.model_selection import StratifiedShuffleSplit
+import re
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -81,7 +82,15 @@ class Dataloader(pl.LightningDataModule):
 
         self.tokenizer.model_max_length = 128
 
-        self.add_token = ["<PERSON>"]  # 넣을 토큰 지정 , "rtt", "sampled"
+        self.add_token = [
+            "<PERSON>",
+            "!!!",
+            "???",
+            "...",
+            "ㅎㅎㅎ",
+            "ㅋㅋㅋ",
+            "ㄷㄷㄷ",
+        ]  # 넣을 토큰 지정 , "rtt", "sampled"
 
         self.new_token_count = self.tokenizer.add_tokens(
             self.add_token
@@ -100,6 +109,10 @@ class Dataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
+
+            # 밑에 텍스트 전처리 함수 구현
+            text = text_preprocessing(text)
+
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
             # source = item["source"].split("-")[-1]
             # text = source + "[SEP]" + text
@@ -260,7 +273,15 @@ class KfoldDataloader(pl.LightningDataModule):
 
         self.tokenizer.model_max_length = 128
         ###
-        self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
+        self.add_token = [
+            "<PERSON>",
+            "!!!",
+            "???",
+            "...",
+            "ㅎㅎㅎ",
+            "ㅋㅋㅋ",
+            "ㄷㄷㄷ",
+        ]  # , "rtt", "sampled"
         ###
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)
 
@@ -278,6 +299,10 @@ class KfoldDataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
+
+            # 밑에 텍스트 전처리 함수 구현
+            text = text_preprocessing(text)
+
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
             # source = item["source"].split("-")[-1]
             # text = source + "[SEP]" + text
@@ -371,3 +396,15 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def new_vocab_size(self):
         return self.new_token_count + self.tokenizer.vocab_size
+
+
+def text_preprocessing(sentence):
+    s = re.sub(r"!!+", "!!!", sentence)  # !두개 이상 -> !!! 고정
+    s = re.sub(r"\?\?+", "???", s)  # ?두개 이상 -> ??? 고정
+    s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
+    s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
+    s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
+    s = re.sub(r"ㅎㅎ+", "ㅎㅎㅎ", s)  # ㅎ두개 이상 -> ㅎㅎㅎ 고정
+    s = re.sub(r"ㅋㅋ+", "ㅋㅋㅋ", s)  # ㅋ두개 이상 -> ㅋㅋㅋ 고정
+    s = re.sub(r"ㄷㄷ+", "ㄷㄷㄷ", s)  # ㄷ두개 이상 -> ㄷㄷㄷ 고정
+    return s
