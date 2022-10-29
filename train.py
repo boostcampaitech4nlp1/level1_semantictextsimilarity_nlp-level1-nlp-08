@@ -2,7 +2,6 @@ import re
 
 import pytorch_lightning as pl
 import torch
-from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
 import model.model as module_arch
@@ -28,6 +27,49 @@ def train(args):
         dataloader.new_vocab_size(),
         args.frozen,
     )  # 새롭게 추가한 토큰 사이즈 반영
+
+    wandb_logger = WandbLogger(project=args.project_name)
+    save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{wandb_logger.experiment.name}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+    trainer = pl.Trainer(
+        accelerator="gpu",
+        devices=1,
+        max_epochs=args.max_epoch,
+        log_every_n_steps=1,
+        logger=wandb_logger,
+        callbacks=[
+            utils.early_stop(
+                monitor=utils.monitor_config[args.monitor]["monitor"],
+                patience=args.patience,
+                mode=utils.monitor_config[args.monitor]["mode"],
+            ),
+            utils.best_save(
+                save_path=save_path,
+                top_k=args.top_k,
+                monitor=utils.monitor_config[args.monitor]["monitor"],
+                mode=utils.monitor_config[args.monitor]["mode"],
+                filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
+            ),
+        ],
+    )
+
+    trainer.fit(model=model, datamodule=dataloader)
+    trainer.test(model=model, datamodule=dataloader)
+
+    trainer.save_checkpoint(save_path + "model.ckpt")
+    torch.save(model, save_path + "model.pt")
+
+
+def continue_train(args):
+    dataloader = Dataloader(
+        args.model_name,
+        args.batch_size,
+        args.train_ratio,
+        args.shuffle,
+        args.train_path,
+        args.test_path,
+        args.predict_path,
+    )
+    model = load_model(args, dataloader)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 
     wandb_logger = WandbLogger(project=args.project_name)
     save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{wandb_logger.experiment.name}/"  # 모델 저장 디렉터리명에 wandb run name 추가
@@ -209,3 +251,23 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
     )
 
     wandb.agent(sweep_id=sweep_id, function=sweep_train, count=exp_count)  # 실험할 횟수 지정
+
+
+def load_model(args, dataloader: Dataloader):  # continue_train과 inference시에 모델을 불러오는 기능은 같기 때문에 메서드로 구현함
+    if args.saved_model.split(".")[-1] == "ckpt":
+        model_name = "/".join(args.saved_model.split("/")[1:3]).split("_")[0]  # huggingface에 저장된 모델명을 parsing함
+        model = module_arch.Model(
+            model_name,
+            args.learning_rate,
+            args.loss,
+            dataloader.new_vocab_size(),
+            args.frozen,
+        )  # 새롭게 추가한 토큰 사이즈 반영
+
+        model = model.load_from_checkpoint(args.saved_model)
+        return model
+    elif args.saved_model.split(".")[-1] == "pt" and args.mode != "continue train" and args.mode != "ct":
+        model = torch.load(args.saved_model)
+        return model
+    else:
+        exit("saved_model 파일 오류")
