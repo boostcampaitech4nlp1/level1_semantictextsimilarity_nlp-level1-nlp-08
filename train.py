@@ -95,9 +95,7 @@ def k_train(args):
         k_datamodule.setup()
         name_ = f"{run_name}_{k+1}th_fold"
         wandb_logger = WandbLogger(project=project_name, name=name_)
-        save_path = (
-            f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
-        )
+        save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -123,6 +121,7 @@ def k_train(args):
         trainer.fit(model=Kmodel, datamodule=k_datamodule)
         score = trainer.test(model=Kmodel, datamodule=k_datamodule)
         wandb.finish()
+
         results.extend(score)
         save_model = f"{args.save_path}{args.model_name}_fold_{k}_maxEpoch_{args.max_epoch}_batchsize_{args.batch_size}"
         torch.save(Kmodel, save_model + ".pt")
@@ -199,7 +198,9 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
 
         wandb_logger = WandbLogger(project=args.project_name)
 
-        trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
+        trainer = pl.Trainer(
+            gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1
+        )
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
 
