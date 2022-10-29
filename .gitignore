@@ -178,6 +178,8 @@ data
 .bashrc
 .profile
 .wget-hsts
+.vscode
+.git
 
 # Personal folder
 jihoon
@@ -191,4 +193,5 @@ model/save_models/
 # Saved model
 model.pt
 output.csv
-submit.csv
+output_n.csv
+README.md
