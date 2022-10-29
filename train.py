@@ -68,29 +68,30 @@ def k_train(args):
     )
     project_name = args.project_name + project_name
 
-    k_datamodule = KfoldDataloader(
-        args.model_name,
-        args.batch_size,
-        args.shuffle,
-        args.num_folds,
-        5,
-        args.train_path,
-        args.test_path,
-        args.predict_path,
-    )
-
-    Kmodel = module_arch.Model(
-        args.model_name,
-        args.learning_rate,
-        args.loss,
-        k_datamodule.new_vocab_size(),
-        args.frozen,
-    )
-
     results = []
     num_folds = args.num_folds
     run_name = WandbLogger(project=project_name).experiment.name
+
     for k in range(num_folds):
+        k_datamodule = KfoldDataloader(
+            args.model_name,
+            args.batch_size,
+            args.shuffle,
+            k,
+            args.num_splits,
+            args.train_path,
+            args.test_path,
+            args.predict_path,
+        )
+
+        Kmodel = module_arch.Model(
+            args.model_name,
+            args.learning_rate,
+            args.loss,
+            k_datamodule.new_vocab_size(),
+            args.frozen,
+        )
+
         k_datamodule.prepare_data()
         k_datamodule.setup()
         name_ = f"{run_name}_{k+1}th_fold"
