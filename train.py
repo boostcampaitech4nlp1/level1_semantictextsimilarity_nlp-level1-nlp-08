@@ -130,7 +130,7 @@ def k_train(conf):
             conf.model.model_name,
             conf.train.batch_size,
             conf.data.shuffle,
-            conf.k_fold.num_folds,
+            k,
             conf.k_fold.num_split,
             conf.path.train_path,
             conf.path.test_path,
