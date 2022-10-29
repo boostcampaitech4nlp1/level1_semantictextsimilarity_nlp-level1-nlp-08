@@ -47,11 +47,6 @@ class Model(pl.LightningModule):
         logits = self(x)
         loss = self.loss_func(logits, y.float())
         self.log("train_loss", loss)
-        self.log(
-            "train_pearson",
-            torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()),
-        )
-
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -86,45 +81,46 @@ class Model(pl.LightningModule):
         return optimizer
 
 
-class HeadClassifier(nn.Module):
-    def __init__(self, input_dim, hidden_dim, drop_out_rate=0.2):
-        super().__init__()
-        self.dense = nn.Linear(input_dim, hidden_dim)
-        self.dropout = nn.Dropout(drop_out_rate)
-        self.output = nn.Linear(hidden_dim, 1)
-
-    def forward(self, features):
-        x = features[:, 0, :]
-        x = self.dropout(x)
-        x = self.dense(x)
-        x = torch.tanh(x)
-        x = self.dropout(x)
-        x = self.output(x)
-
-        return x
-
-
-class BaseModel(pl.LightningModule):  # Base 모델로 이름 변경
-    def __init__(self, model_name, lr, loss):
+class ExampleCustomModel(pl.LightningModule):
+    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):
         super().__init__()
         self.save_hyperparameters()
-
         self.model_name = model_name
         self.lr = lr
-
-        self.plm = transformers.AutoModel.from_pretrained(
-            pretrained_model_name_or_path=model_name
+        self.classifier_input = 1024
+        self.plm = (
+            transformers.AutoModelForSequenceClassification.from_pretrained(  # 기존 모델
+                pretrained_model_name_or_path=model_name,
+                num_labels=self.classifier_input,
+            )
         )
-        input_dim = transformers.AutoConfig.from_pretrained(
-            pretrained_model_name_or_path=model_name
-        ).hidden_size  # 히든벡터의 차원을 input으로 사용
-        self.classifier = HeadClassifier(input_dim, 1024, 0.2)
+        self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
+
         self.loss_func = loss_module.loss_config[loss]
 
-    def forward(self, x):
-        x = self.plm(x)[0]
-        x = self.classifier(x)
+        self.MLP_HEAD = nn.Sequential(
+            nn.Dropout(0.2), nn.Tanh(), nn.Linear(self.classifier_input, 1)
+        )
 
+        if frozen == "True":
+            self.frozen()
+        self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
+        self.loss_func = loss_module.loss_config[loss]
+
+    def frozen(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
+        for name, param in self.plm.named_parameters():
+            param.requires_grad = False
+            if name in [
+                "classifier.dense.weight",
+                "classifier.dense.bias",
+                "classifier.out_proj.weight",
+                "classifier.out_proj.bias",
+            ]:
+                param.requires_grad = True
+
+    def forward(self, x):
+        x = self.plm(x)["logits"]
+        x = self.MLP_HEAD(x)
         return x
 
     def training_step(self, batch, batch_idx):
@@ -132,7 +128,6 @@ class BaseModel(pl.LightningModule):  # Base 모델로 이름 변경
         logits = self(x)
         loss = self.loss_func(logits, y.float())
         self.log("train_loss", loss)
-
         return loss
 
     def validation_step(self, batch, batch_idx):
