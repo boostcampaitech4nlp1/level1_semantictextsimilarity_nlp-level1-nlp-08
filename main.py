@@ -37,7 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("--predict_path", default="../data/test.csv")
     parser.add_argument("--save_path", default="save_models/", type=str)
 
-    parser.add_argument("--project_name", default="nlp-08-sts-kfold")
+    parser.add_argument("--project_name", default="nlp-08-sts")
 
     parser.add_argument("--frozen", "-f", default=False)
     parser.add_argument("--num_folds", default=3, type=int)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument("--learning_rate", "-l", default=3e-5, type=float)
     parser.add_argument("--batch_size", "-b", default=32, type=int)
-    parser.add_argument("--max_epoch", "-e", default=40, type=int)
+    parser.add_argument("--max_epoch", "-e", default=30, type=int)
     parser.add_argument(
         "--model_name", "-n", default="monologg/koelectra-base-v3-discriminator"
     )

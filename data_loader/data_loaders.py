@@ -202,9 +202,8 @@ class KfoldDataloader(pl.LightningDataModule):
         #    model_name, max_length=128
         # )
 
-        self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-            model_name, max_length=128
-        )
+        self.tokenizer = transformers.ElectraTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = 128
 
         # self.tokenizer = transformers.BertTokenizer.from_pretrained(
         #     self.model_name, max_length=128
@@ -218,7 +217,7 @@ class KfoldDataloader(pl.LightningDataModule):
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def tokenizing(self, dataframe, reverse=0):
+    def tokenizing(self, dataframe, reverse=1):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -253,7 +252,7 @@ class KfoldDataloader(pl.LightningDataModule):
 
         return data
 
-    def preprocessing(self, data, reverse=0):
+    def preprocessing(self, data, reverse=1):
         data = data.drop(columns=self.delete_columns)
 
         try:
