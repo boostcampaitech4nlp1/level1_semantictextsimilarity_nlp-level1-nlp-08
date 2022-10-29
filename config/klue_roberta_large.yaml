@@ -13,7 +13,7 @@ model:
   model_name: klue/roberta-large
 
 train:
-  max_epoch: 40
+  max_epoch: 50
   batch_size: 64
   learning_rate: 6e-6
   loss: mse
