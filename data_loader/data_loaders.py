@@ -129,6 +129,8 @@ class Dataloader(pl.LightningDataModule):
                 text = "[SEP]".join(
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
+
+                text = text_preprocessing(text)
                 ###
                 # source = item["source"].split("-")[-1]
                 # text = source + "[SEP]" + text
@@ -319,6 +321,8 @@ class KfoldDataloader(pl.LightningDataModule):
                 text = "[SEP]".join(
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
+
+                text = text_preprocessing(text)
                 ###
                 # source = item["source"].split("-")[-1]
                 # text = source + "[SEP]" + text
