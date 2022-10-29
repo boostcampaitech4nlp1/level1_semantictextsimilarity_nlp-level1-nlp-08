@@ -69,7 +69,7 @@ def continue_train(args):
         args.test_path,
         args.predict_path,
     )
-    model = load_model(args, dataloader)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
+    model, args = load_model(args, dataloader)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 
     wandb_logger = WandbLogger(project=args.project_name)
     save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{wandb_logger.experiment.name}/"  # 모델 저장 디렉터리명에 wandb run name 추가
@@ -254,20 +254,30 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
 
 
 def load_model(args, dataloader: Dataloader):  # continue_train과 inference시에 모델을 불러오는 기능은 같기 때문에 메서드로 구현함
+    # 불러온 모델이 저장되어 있는 디렉터리를 parsing함
+    # ex) 'save_models/klue/roberta-small_maxEpoch1_batchSize32_blooming-wind-57'
+    save_path = "/".join(args.saved_model.split("/")[:-1])
+
+    # huggingface에 저장된 모델명을 parsing함
+    # ex) 'klue/roberta-small'
+    model_name = "/".join(args.saved_model.split("/")[1:-1]).split("_")[0]
+
     if args.saved_model.split(".")[-1] == "ckpt":
-        model_name = "/".join(args.saved_model.split("/")[1:3]).split("_")[0]  # huggingface에 저장된 모델명을 parsing함
         model = module_arch.Model(
             model_name,
             args.learning_rate,
             args.loss,
-            dataloader.new_vocab_size(),
+            dataloader.new_vocab_size(),  # 새롭게 추가한 토큰 사이즈 반영
             args.frozen,
-        )  # 새롭게 추가한 토큰 사이즈 반영
-
+        )
         model = model.load_from_checkpoint(args.saved_model)
-        return model
+
     elif args.saved_model.split(".")[-1] == "pt" and args.mode != "continue train" and args.mode != "ct":
         model = torch.load(args.saved_model)
-        return model
+
     else:
         exit("saved_model 파일 오류")
+
+    args.save_path = save_path + "/"
+    args.model_name = "/".join(model_name.split("/")[1:])
+    return model, args
