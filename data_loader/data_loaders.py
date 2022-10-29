@@ -55,6 +55,7 @@ class Dataloader(pl.LightningDataModule):
                 "klue/roberta-small",
                 "klue/roberta-base",
                 "klue/roberta-large",
+                "jhgan/ko-sroberta-multitask",
             ],
             "electra": [
                 "monologg/koelectra-base-v3-discriminator",
@@ -62,7 +63,6 @@ class Dataloader(pl.LightningDataModule):
             ],
             "roberta": [
                 "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
-                "jhgan/ko-sroberta-multitask",
             ],
         }
 
