@@ -217,7 +217,7 @@ class KfoldDataloader(pl.LightningDataModule):
         self.shuffle = shuffle
         self.k = k
         self.num_splits = num_splits
-        self.split_seed = 12345
+        self.split_seed = 1204
 
         self.train_path = train_path
         self.test_path = test_path
