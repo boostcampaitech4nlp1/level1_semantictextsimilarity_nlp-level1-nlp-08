@@ -19,7 +19,7 @@ def inference(args, conf):
     )
     trainer = pl.Trainer(gpus=1, max_epochs=conf.train.max_epoch, log_every_n_steps=1)
 
-    model, _ = train.load_model(
+    model, _, __ = train.load_model(
         args, conf, dataloader
     )  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 

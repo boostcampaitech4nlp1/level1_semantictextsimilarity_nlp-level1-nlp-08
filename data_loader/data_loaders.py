@@ -213,20 +213,25 @@ class KfoldDataloader(pl.LightningDataModule):
 
         ## 손으로 수정하는 부분 좀 줄일 수 있게끔 수정
         model_list = {
-            "roberta": [
+            "bert": [
                 "klue/roberta-small",
                 "klue/roberta-base",
                 "klue/roberta-large",
             ],
             "electra": ["monologg/koelectra-base-v3-discriminator"],
+            "roberta": ["sentence-transformers/roberta-base-nli-stsb-mean-tokens"],
         }
 
-        if model_name in model_list["roberta"]:
+        if model_name in model_list["bert"]:
             self.tokenizer = transformers.BertTokenizer.from_pretrained(
                 self.model_name, max_length=128
             )
         elif model_name in model_list["electra"]:
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+                model_name, max_length=128
+            )
+        elif model_name in model_list["roberta"]:
+            self.tokenizer = transformers.RobertaTokenizer.from_pretrained(
                 model_name, max_length=128
             )
         else:
