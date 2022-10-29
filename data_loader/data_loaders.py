@@ -4,6 +4,7 @@ import torch
 import transformers
 from sklearn.model_selection import KFold
 from tqdm.auto import tqdm
+from sklearn.model_selection import StratifiedShuffleSplit
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -140,8 +141,17 @@ class Dataloader(pl.LightningDataModule):
         if stage == "fit":
             total_data = pd.read_csv(self.train_path)
 
-            train_data = total_data.sample(frac=self.train_ratio)
-            val_data = total_data.drop(train_data.index)
+            split = StratifiedShuffleSplit(
+                n_splits=1, test_size=self.train_ratio, random_state=1004
+            )
+            for train_idx, val_idx in split.split(
+                total_data, total_data["binary-label"]
+            ):
+                train_data = total_data.loc[train_idx]
+                val_data = total_data.loc[val_idx]
+
+            # train_data = total_data.sample(frac=self.train_ratio)
+            # val_data = total_data.drop(train_data.index)
 
             train_inputs, train_targets = self.preprocessing(train_data, self.swap)
             val_inputs, val_targets = self.preprocessing(val_data, self.swap)
