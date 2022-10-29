@@ -40,14 +40,17 @@ if __name__ == "__main__":
     parser.add_argument("--project_name", default="nlp-08-sts")
 
     parser.add_argument("--frozen", "-f", default=False)
-    parser.add_argument("--num_folds", default=1, type=int)
+    parser.add_argument("--num_folds", default=2, type=int)
+    parser.add_argument("--num_splits", default=5, type=int)
 
     # 주로 만지게 될 것 같은 인자들
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument("--learning_rate", "-l", default=1e-5, type=float)
     parser.add_argument("--batch_size", "-b", default=32, type=int)
-    parser.add_argument("--max_epoch", "-e", default=100, type=int)
-    parser.add_argument("--model_name", "-n", default="klue/roberta-small")
+    parser.add_argument("--max_epoch", "-e", default=1, type=int)
+    parser.add_argument(
+        "--model_name", "-n", default="monologg/koelectra-base-v3-discriminator"
+    )
     parser.add_argument("--mode", "-m", required=True)
     parser.add_argument(
         "--saved_model",
