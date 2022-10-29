@@ -51,15 +51,22 @@ class Dataloader(pl.LightningDataModule):
 
         ## 손으로 수정하는 부분 좀 줄일 수 있게끔 수정
         model_list = {
-            "roberta": [
+            "bert": [
                 "klue/roberta-small",
                 "klue/roberta-base",
                 "klue/roberta-large",
             ],
-            "electra": ["monologg/koelectra-base-v3-discriminator"],
+            "electra": [
+                "monologg/koelectra-base-v3-discriminator",
+                "monologg/koelectra-base-finetuned-sentiment",
+            ],
+            "roberta": [
+                "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
+                "jhgan/ko-sroberta-multitask",
+            ],
         }
 
-        if model_name in model_list["roberta"]:
+        if model_name in model_list["bert"]:
             self.tokenizer = transformers.BertTokenizer.from_pretrained(
                 self.model_name, max_length=128
             )
@@ -67,6 +74,9 @@ class Dataloader(pl.LightningDataModule):
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
                 model_name, max_length=128
             )
+        elif model_name in model_list["roberta"]:
+            self.tokenizer = transformers.v.from_pretrained(model_name, max_length=128)
+
         else:
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                 model_name, max_length=128
@@ -228,8 +238,14 @@ class KfoldDataloader(pl.LightningDataModule):
                 "klue/roberta-base",
                 "klue/roberta-large",
             ],
-            "electra": ["monologg/koelectra-base-v3-discriminator"],
-            "roberta": ["sentence-transformers/roberta-base-nli-stsb-mean-tokens"],
+            "electra": [
+                "monologg/koelectra-base-v3-discriminator",
+                "monologg/koelectra-base-finetuned-sentiment",
+            ],
+            "roberta": [
+                "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
+                "jhgan/ko-sroberta-multitask",
+            ],
         }
 
         if model_name in model_list["bert"]:
@@ -241,7 +257,10 @@ class KfoldDataloader(pl.LightningDataModule):
                 model_name, max_length=128
             )
         elif model_name in model_list["roberta"]:
-            self.tokenizer = transformers.RobertaTokenizer.from_pretrained(
+            self.tokenizer = transformers.v.from_pretrained(model_name, max_length=128)
+
+        else:
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                 model_name, max_length=128
             )
         else:
