@@ -11,52 +11,52 @@ import utils.utils as utils
 
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-# train.train(cfg)
-def train(cfg):
+# train.train(conf)
+def train(conf):
     project_name = re.sub(
         "/",
         "_",
-        f"{cfg.model.model_name}_epoch_{cfg.train.max_epoch}_batchsize_{cfg.train.batch_size}",
+        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
     )
-    project_name = cfg.wandb.project + project_name
+    project_name = conf.wandb.project + project_name
 
     dataloader = Dataloader(
-        cfg.model.model_name,
-        cfg.train.batch_size,
-        cfg.data.train_ratio,
-        cfg.data.shuffle,
-        cfg.path.train_path,
-        cfg.path.test_path,
-        cfg.path.predict_path,
-        cfg.data.swap,
+        conf.model.model_name,
+        conf.train.batch_size,
+        conf.data.train_ratio,
+        conf.data.shuffle,
+        conf.path.train_path,
+        conf.path.test_path,
+        conf.path.predict_path,
+        conf.data.swap,
     )
     model = module_arch.Model(
-        cfg.model.model_name,
-        cfg.train.learning_rate,
-        cfg.train.loss,
+        conf.model.model_name,
+        conf.train.learning_rate,
+        conf.train.loss,
         dataloader.new_vocab_size(),
-        cfg.train.use_frozen,
+        conf.train.use_frozen,
     )  # 새롭게 추가한 토큰 사이즈 반영
 
-    wandb_logger = WandbLogger(name=cfg.wandb.name, project=project_name)
-    save_path = f"{cfg.path.save_path}{cfg.model.model_name}_maxEpoch{cfg.train.max_epoch}_batchSize{cfg.train.batch_size}/"
+    wandb_logger = WandbLogger(name=conf.wandb.name, project=project_name)
+    save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}/"
     trainer = pl.Trainer(
         accelerator="gpu",
         devices=1,
-        max_epochs=cfg.train.max_epoch,
+        max_epochs=conf.train.max_epoch,
         log_every_n_steps=1,
         logger=wandb_logger,
         callbacks=[
             utils.early_stop(
-                monitor=utils.monitor_config[cfg.utils.monitor]["monitor"],
-                patience=cfg.utils.patience,
-                mode=utils.monitor_config[cfg.utils.monitor]["mode"],
+                monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                patience=conf.utils.patience,
+                mode=utils.monitor_config[conf.utils.monitor]["mode"],
             ),
             utils.best_save(
                 save_path=save_path,
-                top_k=cfg.utils.top_k,
-                monitor=utils.monitor_config[cfg.utils.monitor]["monitor"],
-                mode=utils.monitor_config[cfg.utils.monitor]["mode"],
+                top_k=conf.utils.top_k,
+                monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                mode=utils.monitor_config[conf.utils.monitor]["mode"],
                 filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
             ),
         ],
@@ -69,36 +69,36 @@ def train(cfg):
     torch.save(model, save_path + "model.pt")
 
 
-def k_train(cfg):
+def k_train(conf):
     project_name = re.sub(
         "/",
         "_",
-        f"{cfg.model.model_name}_epoch_{cfg.train.max_epoch}_batchsize_{cfg.train.batch_size}",
+        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
     )
-    project_name = cfg.wandb.project + project_name
+    project_name = conf.wandb.project + project_name
 
     k_datamodule = KfoldDataloader(
-        cfg.model.model_name,
-        cfg.train.batch_size,
-        cfg.data.shuffle,
-        cfg.k_fold.num_folds,
-        cfg.k_fold.k,
-        cfg.path.train_path,
-        cfg.path.test_path,
-        cfg.path.predict_path,
-        cfg.data.swap,
+        conf.model.model_name,
+        conf.train.batch_size,
+        conf.data.shuffle,
+        conf.k_fold.num_folds,
+        conf.k_fold.k,
+        conf.path.train_path,
+        conf.path.test_path,
+        conf.path.predict_path,
+        conf.data.swap,
     )
 
     Kmodel = module_arch.Model(
-        cfg.model.model_name,
-        cfg.train.learning_rate,
-        cfg.train.loss,
+        conf.model.model_name,
+        conf.train.learning_rate,
+        conf.train.loss,
         k_datamodule.new_vocab_size(),
-        cfg.train.use_frozen,
+        conf.train.use_frozen,
     )
 
     results = []
-    num_folds = cfg.k_fold.num_folds
+    num_folds = conf.k_fold.num_folds
 
     for k in range(num_folds):
         k_datamodule.prepare_data()
@@ -107,20 +107,20 @@ def k_train(cfg):
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
-            max_epochs=cfg.train.max_epoch,
+            max_epochs=conf.train.max_epoch,
             log_every_n_steps=1,
             logger=wandb_logger,
             callbacks=[
                 utils.early_stop(
-                    monitor=utils.monitor_config[cfg.utils.monitor]["monitor"],
-                    patience=cfg.utils.patience,
-                    mode=utils.monitor_config[cfg.utils.monitor]["mode"],
+                    monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                    patience=conf.utils.patience,
+                    mode=utils.monitor_config[conf.utils.monitor]["mode"],
                 ),
                 utils.best_save(
-                    save_path=cfg.path.save_path + f"{cfg.model.model_name}/",
-                    top_k=cfg.utils.top_k,
-                    monitor=utils.monitor_config[cfg.utils.monitor]["monitor"],
-                    mode=utils.monitor_config[cfg.utils.monitor]["mode"],
+                    save_path=conf.path.save_path + f"{conf.model.model_name}/",
+                    top_k=conf.utils.top_k,
+                    monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                    mode=utils.monitor_config[conf.utils.monitor]["mode"],
                     filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
                 ),
             ],
@@ -130,7 +130,7 @@ def k_train(cfg):
         score = trainer.test(model=Kmodel, datamodule=k_datamodule)
         wandb.finish()
         results.extend(score)
-        save_model = f"{cfg.path.save_path}{cfg.model.model_name}_fold_{k}_epoch_{cfg.train.max_epoch}_batchsize_{cfg.train.batch_size}.pt"
+        save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}.pt"
         torch.save(Kmodel, save_model)
 
     result = [x["test_pearson"] for x in results]
@@ -138,13 +138,13 @@ def k_train(cfg):
     print(score)
 
 
-def sweep(cfg, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
+def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
     project_name = re.sub(
         "/",
         "_",
-        f"{cfg.model.model_name}_epoch_{cfg.train.max_epoch}_batchsize_{cfg.train.batch_size}",
+        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
     )
-    project_name = cfg.wandb.project + project_name
+    project_name = conf.wandb.project + project_name
 
     sweep_config = {
         "method": "bayes",  # random: 임의의 값의 parameter 세트를 선택, #bayes : 베이지안 최적화
@@ -185,43 +185,43 @@ def sweep(cfg, exp_count):  # 메인에서 받아온 args와 실험을 반복할
         config = wandb.config
 
         dataloader = Dataloader(
-            cfg.model.model_name,
-            cfg.train.batch_size,
-            cfg.data.train_ratio,
-            cfg.data.shuffle,
-            cfg.path.train_path,
-            cfg.path.test_path,
-            cfg.path.predict_path,
-            cfg.data.swap,
+            conf.model.model_name,
+            conf.train.batch_size,
+            conf.data.train_ratio,
+            conf.data.shuffle,
+            conf.path.train_path,
+            conf.path.test_path,
+            conf.path.predict_path,
+            conf.data.swap,
         )
         model = module_arch.Model(
-            cfg.model.model_name,
+            conf.model.model_name,
             config.lr,
             config.loss,
             dataloader.new_vocab_size(),
-            cfg.train.use_frozen,
+            conf.train.use_frozen,
         )
 
         wandb_logger = WandbLogger(project=project_name)
         save_path = (
-            f"{cfg.path.save_path}{cfg.model.model_name}_sweep_id_{wandb.run.name}/"
+            f"{conf.path.save_path}{conf.model.model_name}_sweep_id_{wandb.run.name}/"
         )
         trainer = pl.Trainer(
             gpus=1,
-            max_epochs=cfg.train.max_epoch,
+            max_epochs=conf.train.max_epoch,
             logger=wandb_logger,
             log_every_n_steps=1,
             callbacks=[
                 utils.early_stop(
-                    monitor=utils.monitor_config[cfg.utils.monitor]["monitor"],
-                    patience=cfg.utils.patience,
-                    mode=utils.monitor_config[cfg.utils.monitor]["mode"],
+                    monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                    patience=conf.utils.patience,
+                    mode=utils.monitor_config[conf.utils.monitor]["mode"],
                 ),
                 utils.best_save(
                     save_path=save_path,
-                    top_k=cfg.utils.top_k,
-                    monitor=utils.monitor_config[cfg.utils.monitor]["monitor"],
-                    mode=utils.monitor_config[cfg.utils.monitor]["mode"],
+                    top_k=conf.utils.top_k,
+                    monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                    mode=utils.monitor_config[conf.utils.monitor]["mode"],
                     filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
                 ),
             ],

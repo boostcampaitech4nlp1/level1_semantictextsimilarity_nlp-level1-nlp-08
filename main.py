@@ -30,9 +30,9 @@ if __name__ == "__main__":
         help="저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt",
     )
     args, _ = parser.parse_known_args()
-    cfg = OmegaConf.load(f"./config/{args.config}.yaml")
+    conf = OmegaConf.load(f"./config/{args.config}.yaml")
 
-    SEED = cfg.utils.seed
+    SEED = conf.utils.seed
     random.seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
@@ -42,17 +42,17 @@ if __name__ == "__main__":
 
     if args.mode == "train" or args.mode == "t":
         # num_folds 변수 확인
-        if cfg.k_fold.use_k_fold:
-            train.k_train(cfg)
+        if conf.k_fold.use_k_fold:
+            train.k_train(conf)
         else:
-            train.train(cfg)
+            train.train(conf)
 
     elif args.mode == "exp" or args.mode == "e":
         exp_count = int(input("실험할 횟수를 입력해주세요 "))
-        train.sweep(cfg, exp_count)
+        train.sweep(conf, exp_count)
 
     elif args.mode == "inference" or args.mode == "i":
-        inference.inference(args, cfg)
+        inference.inference(args, conf)
     else:
         print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")

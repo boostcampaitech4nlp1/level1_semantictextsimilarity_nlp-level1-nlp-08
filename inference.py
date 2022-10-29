@@ -5,18 +5,18 @@ from data_loader.data_loaders import Dataloader
 import model.model as module_arch
 
 
-def inference(args, cfg):
+def inference(args, conf):
     dataloader = Dataloader(
-        cfg.model.model_name,
-        cfg.train.batch_size,
-        cfg.data.train_ratio,
-        cfg.data.shuffle,
-        cfg.path.train_path,
-        cfg.path.test_path,
-        cfg.path.predict_path,
-        cfg.data.swap,
+        conf.model.model_name,
+        conf.train.batch_size,
+        conf.data.train_ratio,
+        conf.data.shuffle,
+        conf.path.train_path,
+        conf.path.test_path,
+        conf.path.predict_path,
+        conf.data.swap,
     )
-    trainer = pl.Trainer(gpus=1, max_epochs=cfg.train.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(gpus=1, max_epochs=conf.train.max_epoch, log_every_n_steps=1)
 
     if args.saved_model.split(".")[-1] == "ckpt":
         model_name = "/".join(args.saved_model.split("/")[1:3]).split("_")[
@@ -24,10 +24,10 @@ def inference(args, cfg):
         ]  # huggingface에 저장된 모델명을 parsing함
         model = module_arch.Model(
             model_name,
-            cfg.train.learning_rate,
-            cfg.train.loss,
+            conf.train.learning_rate,
+            conf.train.loss,
             dataloader.new_vocab_size(),
-            cfg.train.use_frozen,
+            conf.train.use_frozen,
         )  # 새롭게 추가한 토큰 사이즈 반영
 
         model = model.load_from_checkpoint(args.saved_model)
