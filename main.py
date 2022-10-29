@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--config", "-c", type=str, default="klue_roberta_large")
+    parser.add_argument("--config", "-c", type=str, default="klue_roberta_small")
     parser.add_argument("--mode", "-m", required=True)
     parser.add_argument(
         "--saved_model",
