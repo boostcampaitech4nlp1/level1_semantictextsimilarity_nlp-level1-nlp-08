@@ -1,25 +1,21 @@
-import transformers
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torchmetrics
-import pytorch_lightning as pl
+import transformers
 
 from . import loss as loss_module
 
 
 class Model(pl.LightningModule):
-    def __init__(
-        self, model_name, lr, loss, new_vocab_size, frozen
-    ):  # 새로운 vocab 사이즈 설정
+    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):  # 새로운 vocab 사이즈 설정
         super().__init__()
         self.save_hyperparameters()
 
         self.model_name = model_name
         self.lr = lr
 
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
-            pretrained_model_name_or_path=model_name, num_labels=1
-        )
+        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
 
         if frozen == "True":
             self.frozen()
@@ -112,12 +108,8 @@ class BaseModel(pl.LightningModule):  # Base 모델로 이름 변경
         self.model_name = model_name
         self.lr = lr
 
-        self.plm = transformers.AutoModel.from_pretrained(
-            pretrained_model_name_or_path=model_name
-        )
-        input_dim = transformers.AutoConfig.from_pretrained(
-            pretrained_model_name_or_path=model_name
-        ).hidden_size  # 히든벡터의 차원을 input으로 사용
+        self.plm = transformers.AutoModel.from_pretrained(pretrained_model_name_or_path=model_name)
+        input_dim = transformers.AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name).hidden_size  # 히든벡터의 차원을 input으로 사용
         self.classifier = HeadClassifier(input_dim, 1024, 0.2)
         self.loss_func = loss_module.loss_config[loss]
 
