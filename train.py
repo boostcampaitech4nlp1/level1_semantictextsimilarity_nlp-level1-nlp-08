@@ -89,11 +89,15 @@ def k_train(args):
 
     results = []
     num_folds = args.num_folds
-
+    run_name = WandbLogger(project=project_name).experiment.name
     for k in range(num_folds):
         k_datamodule.prepare_data()
         k_datamodule.setup()
-        wandb_logger = WandbLogger(project=project_name, name=f"{k}th_fold")
+        name_ = f"{run_name}_{k+1}th_fold"
+        wandb_logger = WandbLogger(project=project_name, name=name_)
+        save_path = (
+            f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+        )
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -107,7 +111,7 @@ def k_train(args):
                     mode=utils.monitor_config[args.monitor]["mode"],
                 ),
                 utils.best_save(
-                    save_path=args.save_path + f"{args.model_name}/",
+                    save_path=save_path,
                     top_k=args.top_k,
                     monitor=utils.monitor_config[args.monitor]["monitor"],
                     mode=utils.monitor_config[args.monitor]["mode"],
@@ -120,8 +124,9 @@ def k_train(args):
         score = trainer.test(model=Kmodel, datamodule=k_datamodule)
         wandb.finish()
         results.extend(score)
-        save_model = f"{args.save_path}{args.model_name}_fold_{k}_epoch_{args.max_epoch}_batchsize_{args.batch_size}.pt"
-        torch.save(Kmodel, save_model)
+        save_model = f"{args.save_path}{args.model_name}_fold_{k}_maxEpoch_{args.max_epoch}_batchsize_{args.batch_size}"
+        torch.save(Kmodel, save_model + ".pt")
+        trainer.save_checkpoint(save_model + ".ckpt")
 
     result = [x["test_pearson"] for x in results]
     score = sum(result) / num_folds
