@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # 프로젝트 name은 모델명과 batch_size, epoch로 잘 지정하면 될 듯
     parser.add_argument("--learning_rate", "-l", default=3e-5, type=float)
     parser.add_argument("--batch_size", "-b", default=32, type=int)
-    parser.add_argument("--max_epoch", "-e", default=30, type=int)
+    parser.add_argument("--max_epoch", "-e", default=33, type=int)
     parser.add_argument(
         "--model_name", "-n", default="monologg/koelectra-base-v3-discriminator"
     )
@@ -71,12 +71,12 @@ if __name__ == "__main__":
         train.sweep(args, exp_count)
 
     elif args.mode == "inference" or args.mode == "i":
-        # inference.inference(args)
-        inference.kfold_inference(
-            args,
-            "/opt/ml/level1_semantictextsimilarity_nlp-level1-nlp-08/folds",
-            "monologg/koelectra-base-v3-discriminator",
-        )
+        inference.inference(args)
+        # inference.kfold_inference(
+        #     args,
+        #     "/opt/ml/level1_semantictextsimilarity_nlp-level1-nlp-08/folds",
+        #     "monologg/koelectra-base-v3-discriminator",
+        # )
     else:
         print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")

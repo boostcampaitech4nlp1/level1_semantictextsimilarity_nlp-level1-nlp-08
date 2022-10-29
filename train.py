@@ -79,17 +79,16 @@ def k_train(args):
         args.predict_path,
     )
 
-    Kmodel = module_arch.Model(
-        args.model_name,
-        args.learning_rate,
-        args.loss,
-        k_datamodule.new_vocab_size(),
-        args.frozen,
-    )
-
     results = []
     num_folds = args.num_folds
     for k in range(num_folds):
+        Kmodel = module_arch.Model(
+            args.model_name,
+            args.learning_rate,
+            args.loss,
+            k_datamodule.new_vocab_size(),
+            args.frozen,
+        )
         k_datamodule.prepare_data()
         k_datamodule.setup()
         name_ = f"{k+1}th_fold"
