@@ -202,17 +202,15 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
                 # parameter를 설정하는 기준을 선택합니다. uniform은 연속적으로 균등한 값들을 선택합니다.
                 "distribution": "uniform",
                 "min": 1e-6,  # 최소값을 설정합니다.
-                "max": 1e-5,  # 최대값을 설정합니다.
+                "max": 9e-6,  # 최대값을 설정합니다.
             },
             "batch_size": {
                 "values": [
-                    32,
                     64,
                 ]  # 배치 사이즈 조절, OOM 안나는 선에서 할 수 있도록 실험할 때 미리 세팅해주어야 함
             },
             "loss": {
                 "values": [
-                    "l1",
                     "mse",
                 ]  # loss 사용할 것들 지정, bce는 이진 분류가 아니기 때문에 일단 제외
             },

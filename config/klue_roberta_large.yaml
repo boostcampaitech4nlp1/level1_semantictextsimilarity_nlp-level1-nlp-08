@@ -13,8 +13,8 @@ model:
   model_name: klue/roberta-large
 
 train:
-  max_epoch: 100
-  batch_size: 32
+  max_epoch: 40
+  batch_size: 64
   learning_rate: 6e-6
   loss: mse
   use_frozen: False
