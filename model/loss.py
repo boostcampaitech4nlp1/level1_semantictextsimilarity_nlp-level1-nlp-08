@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 def nll_loss(output, target):
-    loss_func = F.nll_loss()
+    loss_func = nn.NLLLoss()
     return loss_func(output, target)
 
 
