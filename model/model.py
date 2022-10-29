@@ -1,12 +1,15 @@
-import transformers
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torchmetrics
-import pytorch_lightning as pl
+import transformers
 
 from . import loss as loss_module
 
-
+adfasl
+ga
+lsdjglajsf
+## 수정하기
 class Model(pl.LightningModule):
     def __init__(
         self, model_name, lr, loss, new_vocab_size, frozen

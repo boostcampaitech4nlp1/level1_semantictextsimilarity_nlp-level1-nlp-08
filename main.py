@@ -1,12 +1,10 @@
 import argparse
 import random
+
 import numpy as np
 import pandas as pd
-
-import torch
 import pytorch_lightning as pl
-
-from data_loader.data_loaders import Dataloader
+import torch
 
 import inference
 import train
@@ -46,6 +44,9 @@ if __name__ == "__main__":
             train.k_train(conf)
         else:
             train.train(conf)
+
+    elif args.mode == "continue train" or args.mode == "ct":
+        train.continue_train(args, conf)
 
     elif args.mode == "exp" or args.mode == "e":
         exp_count = int(input("실험할 횟수를 입력해주세요 "))

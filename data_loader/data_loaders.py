@@ -1,11 +1,9 @@
 import pandas as pd
-
-from tqdm.auto import tqdm
-
-import transformers
-import torch
 import pytorch_lightning as pl
+import torch
+import transformers
 from sklearn.model_selection import KFold
+from tqdm.auto import tqdm
 
 
 class Dataset(torch.utils.data.Dataset):
