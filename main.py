@@ -8,7 +8,6 @@ import torch
 
 import inference
 import train
-from data_loader.data_loaders import Dataloader
 
 # fix random seeds for reproducibility
 SEED = 42
@@ -64,12 +63,16 @@ if __name__ == "__main__":
         else:
             train.train(args)
 
+    elif args.mode == "continue train" or args.mode == "ct":
+        train.continue_train(args)
+
     elif args.mode == "exp" or args.mode == "e":
         exp_count = int(input("실험할 횟수를 입력해주세요 "))
         train.sweep(args, exp_count)
 
     elif args.mode == "inference" or args.mode == "i":
         inference.inference(args)
+
     else:
         print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")
