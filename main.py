@@ -49,7 +49,9 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", "-l", default=1e-5, type=float)
     parser.add_argument("--batch_size", "-b", default=32, type=int)
     parser.add_argument("--max_epoch", "-e", default=100, type=int)
-    parser.add_argument("--model_name", "-n", default="klue/roberta-small")
+    parser.add_argument(
+        "--model_name", "-n", default="monologg/koelectra-base-v3-discriminator"
+    )
     parser.add_argument("--mode", "-m", required=True)
     parser.add_argument(
         "--saved_model",
