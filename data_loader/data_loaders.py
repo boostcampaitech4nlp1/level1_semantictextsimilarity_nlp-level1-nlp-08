@@ -67,20 +67,17 @@ class Dataloader(pl.LightningDataModule):
         }
 
         if model_name in model_list["bert"]:
-            self.tokenizer = transformers.BertTokenizer.from_pretrained(
-                self.model_name, max_length=128
-            )
+            self.tokenizer = transformers.BertTokenizer.from_pretrained(self.model_name)
         elif model_name in model_list["electra"]:
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-                model_name, max_length=128
+                self.model_name
             )
         elif model_name in model_list["roberta"]:
-            self.tokenizer = transformers.v.from_pretrained(model_name, max_length=128)
-
-        else:
-            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                model_name, max_length=128
+            self.tokenizer = transformers.RobertaTokenizer.from_pretrained(
+                self.model_name
             )
+        else:
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
         self.tokenizer.model_max_length = 128
 
@@ -249,24 +246,17 @@ class KfoldDataloader(pl.LightningDataModule):
         }
 
         if model_name in model_list["bert"]:
-            self.tokenizer = transformers.BertTokenizer.from_pretrained(
-                self.model_name, max_length=128
-            )
+            self.tokenizer = transformers.BertTokenizer.from_pretrained(self.model_name)
         elif model_name in model_list["electra"]:
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-                model_name, max_length=128
+                self.model_name
             )
         elif model_name in model_list["roberta"]:
-            self.tokenizer = transformers.v.from_pretrained(model_name, max_length=128)
-
-        else:
-            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                model_name, max_length=128
+            self.tokenizer = transformers.RobertaTokenizer.from_pretrained(
+                self.model_name
             )
         else:
-            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                model_name, max_length=128
-            )
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
         self.tokenizer.model_max_length = 128
         ###
