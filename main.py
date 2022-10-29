@@ -1,16 +1,14 @@
 import argparse
 import random
+
 import numpy as np
 import pandas as pd
-
-import torch
 import pytorch_lightning as pl
-
-from data_loader.data_loaders import Dataloader
+import torch
 
 import inference
 import train
-
+from data_loader.data_loaders import Dataloader
 
 # fix random seeds for reproducibility
 SEED = 42
