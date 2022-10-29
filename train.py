@@ -121,30 +121,31 @@ def k_train(conf):
     )
     project_name = conf.wandb.project + project_name
 
-    k_datamodule = KfoldDataloader(
-        conf.model.model_name,
-        conf.train.batch_size,
-        conf.data.shuffle,
-        conf.k_fold.num_folds,
-        conf.k_fold.k,
-        conf.path.train_path,
-        conf.path.test_path,
-        conf.path.predict_path,
-        conf.data.swap,
-    )
-
-    Kmodel = module_arch.Model(
-        conf.model.model_name,
-        conf.train.learning_rate,
-        conf.train.loss,
-        k_datamodule.new_vocab_size(),
-        conf.train.use_frozen,
-    )
-
     results = []
     num_folds = conf.k_fold.num_folds
     run_name = WandbLogger(project=project_name).experiment.name
+
     for k in range(num_folds):
+        k_datamodule = KfoldDataloader(
+            conf.model.model_name,
+            conf.train.batch_size,
+            conf.data.shuffle,
+            conf.k_fold.num_folds,
+            conf.k_fold.num_split,
+            conf.path.train_path,
+            conf.path.test_path,
+            conf.path.predict_path,
+            conf.data.swap,
+        )
+
+        Kmodel = module_arch.Model(
+            conf.model.model_name,
+            conf.train.learning_rate,
+            conf.train.loss,
+            k_datamodule.new_vocab_size(),
+            conf.train.use_frozen,
+        )
+
         k_datamodule.prepare_data()
         k_datamodule.setup()
         name_ = f"{run_name}_{k+1}th_fold"
@@ -175,6 +176,7 @@ def k_train(conf):
         trainer.fit(model=Kmodel, datamodule=k_datamodule)
         score = trainer.test(model=Kmodel, datamodule=k_datamodule)
         wandb.finish()
+
         results.extend(score)
         save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
         torch.save(Kmodel, save_model + ".pt")

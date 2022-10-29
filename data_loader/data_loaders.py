@@ -220,7 +220,7 @@ class KfoldDataloader(pl.LightningDataModule):
         self.shuffle = shuffle
         self.k = k
         self.num_splits = num_splits
-        # self.split_seed = split_seed
+        self.split_seed = 12345
 
         self.train_path = train_path
         self.test_path = test_path
@@ -338,7 +338,11 @@ class KfoldDataloader(pl.LightningDataModule):
             total_inputs, total_targets = self.preprocessing(total_data, self.swap)
             total_dataset = Dataset(total_inputs, total_targets)
 
-            kf = KFold(n_splits=self.num_splits, shuffle=self.shuffle)
+            kf = KFold(
+                n_splits=self.num_splits,
+                shuffle=self.shuffle,
+                random_state=self.split_seed,
+            )
             all_splits = [k for k in kf.split(total_dataset)]
 
             train_indexes, val_indexes = all_splits[self.k]

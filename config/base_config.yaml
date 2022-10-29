@@ -28,7 +28,7 @@ utils:
 k_fold:
   use_k_fold: False
   num_folds: 3
-  k: 5
+  num_split: 5
   
 wandb:
   project: nlp-08-sts
