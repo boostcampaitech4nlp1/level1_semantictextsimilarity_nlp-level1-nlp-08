@@ -1,9 +1,10 @@
 import pandas as pd
 import pytorch_lightning as pl
 import torch
+import os
 
 import model.model as module_arch
-from data_loader.data_loaders import Dataloader, KfoldDataloader
+from data_loader.data_loaders import Dataloader
 
 
 def inference(args):
@@ -77,6 +78,7 @@ def kfold_inference(args, models_path, model_name):
     predict, predict_n, predict_e = [], [], []
 
     for model in models:
+        path_ = "/opt/ml/level1_semantictextsimilarity_nlp-level1-nlp-08/folds/" + model
         if model.split(".")[-1] == "ckpt":
             model_name = model_name
             model = module_arch.Model(
@@ -87,9 +89,9 @@ def kfold_inference(args, models_path, model_name):
                 args.frozen,
             )  # 새롭게 추가한 토큰 사이즈 반영
 
-            model = model.load_from_checkpoint(model)
+            model = model.load_from_checkpoint(path_)
         elif model.split(".")[-1] == "pt":
-            model = torch.load(model)
+            model = torch.load(path_)
         else:
             exit("saved_model 파일 오류")
 
