@@ -40,7 +40,7 @@ def inference(args):
 
     predictions = list(round(float(i), 1) for i in torch.cat(predictions))
     predictions_n = [round(5 * x / (max(predictions) - min(predictions) + 1e-8), 1) for x in predictions]  # Normalize
-    predictions_e = [round((x[0] + x[1]) / 2, 1) for x in zip(predictions, predictions_n)]
+    predictions_e = [round((x[0] + x[1]) / 2, 1) for x in zip(predictions, predictions_n)]  # Mean
 
     output = pd.read_csv("../data/sample_submission.csv")
     output_n = pd.read_csv("../data/sample_submission.csv")
