@@ -33,6 +33,7 @@ class Dataloader(pl.LightningDataModule):
         train_path,
         test_path,
         predict_path,
+        swap,
     ):
         super().__init__()
         self.model_name = model_name
@@ -49,30 +50,43 @@ class Dataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            model_name, max_length=128
-        )
+        ## 손으로 수정하는 부분 좀 줄일 수 있게끔 수정
+        model_list = {
+            "roberta": [
+                "klue/roberta-small",
+                "klue/roberta-base",
+                "klue/roberta-large",
+            ],
+            "electra": ["monologg/koelectra-base-v3-discriminator"],
+        }
 
-        # self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-        #     model_name, max_length=128
-        # )
+        if model_name in model_list["roberta"]:
+            self.tokenizer = transformers.BertTokenizer.from_pretrained(
+                self.model_name, max_length=128
+            )
+        elif model_name in model_list["electra"]:
+            self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+                model_name, max_length=128
+            )
+        else:
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                model_name, max_length=128
+            )
 
-        # self.tokenizer = transformers.BertTokenizerFast.from_pretrained(
-        #     self.model_name, max_length=128
-        # )
+        self.tokenizer.model_max_length = 128
 
-        ###
         self.add_token = ["<PERSON>"]  # 넣을 토큰 지정 , "rtt", "sampled"
-        ###
+
         self.new_token_count = self.tokenizer.add_tokens(
             self.add_token
         )  # 새롭게 추가된 토큰의 수 저장
+        self.swap = swap
 
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def tokenizing(self, dataframe, reverse=0):
+    def tokenizing(self, dataframe, swap):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -89,7 +103,7 @@ class Dataloader(pl.LightningDataModule):
             )
             data.append(outputs["input_ids"])
 
-        if reverse == 1:  # reverse 적용시 양방향 될 수 있도록
+        if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(
                 dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
             ):
@@ -107,11 +121,11 @@ class Dataloader(pl.LightningDataModule):
 
         return data
 
-    def preprocessing(self, data, reverse=0):
+    def preprocessing(self, data, swap):
         data = data.drop(columns=self.delete_columns)  # id column 삭제
 
         try:
-            if reverse == 1:
+            if swap:
                 targets = (
                     data[self.target_columns].values.tolist()
                     + data[self.target_columns].values.tolist()
@@ -120,7 +134,7 @@ class Dataloader(pl.LightningDataModule):
                 targets = data[self.target_columns].values.tolist()
         except:
             targets = []
-        inputs = self.tokenizing(data, reverse)
+        inputs = self.tokenizing(data, swap)
 
         return inputs, targets
 
@@ -131,8 +145,8 @@ class Dataloader(pl.LightningDataModule):
             train_data = total_data.sample(frac=self.train_ratio)
             val_data = total_data.drop(train_data.index)
 
-            train_inputs, train_targets = self.preprocessing(train_data)
-            val_inputs, val_targets = self.preprocessing(val_data)
+            train_inputs, train_targets = self.preprocessing(train_data, self.swap)
+            val_inputs, val_targets = self.preprocessing(val_data, self.swap)
 
             self.train_dataset = Dataset(train_inputs, train_targets)
             self.val_dataset = Dataset(val_inputs, val_targets)
@@ -141,8 +155,8 @@ class Dataloader(pl.LightningDataModule):
             test_data = pd.read_csv(self.test_path)
             predict_data = pd.read_csv(self.predict_path)
 
-            test_inputs, test_targets = self.preprocessing(test_data)
-            predict_inputs, predict_targets = self.preprocessing(predict_data)
+            test_inputs, test_targets = self.preprocessing(test_data, False)
+            predict_inputs, predict_targets = self.preprocessing(predict_data, False)
 
             self.test_dataset = Dataset(test_inputs, test_targets)
             self.predict_dataset = Dataset(predict_inputs, predict_targets)
@@ -180,6 +194,7 @@ class KfoldDataloader(pl.LightningDataModule):
         train_path,
         test_path,
         predict_path,
+        use_swap,
     ):
         super().__init__()
         self.model_name = model_name
@@ -198,27 +213,42 @@ class KfoldDataloader(pl.LightningDataModule):
         self.test_dataset = None
         self.predict_dataset = None
 
-        # self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-        #    model_name, max_length=128
-        # )
+        ## 손으로 수정하는 부분 좀 줄일 수 있게끔 수정
+        model_list = {
+            "roberta": [
+                "klue/roberta-small",
+                "klue/roberta-base",
+                "klue/roberta-large",
+            ],
+            "electra": ["monologg/koelectra-base-v3-discriminator"],
+        }
 
-        # self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
-        #     model_name, max_length=128
-        # )
+        if model_name in model_list["roberta"]:
+            self.tokenizer = transformers.BertTokenizer.from_pretrained(
+                self.model_name, max_length=128
+            )
+        elif model_name in model_list["electra"]:
+            self.tokenizer = transformers.ElectraTokenizer.from_pretrained(
+                model_name, max_length=128
+            )
+        else:
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                model_name, max_length=128
+            )
 
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(
-            self.model_name, max_length=128
-        )
+        self.tokenizer.model_max_length = 128
         ###
         self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
         ###
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)
 
+        self.swap = use_swap
+
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
         self.text_columns = ["sentence_1", "sentence_2"]
 
-    def tokenizing(self, dataframe, reverse=0):
+    def tokenizing(self, dataframe, swap):
         data = []
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
@@ -235,7 +265,7 @@ class KfoldDataloader(pl.LightningDataModule):
             )
             data.append(outputs["input_ids"])
 
-        if reverse == 1:  # reverse 적용시 양방향 될 수 있도록
+        if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(
                 dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
             ):
@@ -253,11 +283,11 @@ class KfoldDataloader(pl.LightningDataModule):
 
         return data
 
-    def preprocessing(self, data, reverse=0):
+    def preprocessing(self, data, swap):
         data = data.drop(columns=self.delete_columns)
 
         try:
-            if reverse == 1:
+            if swap:
                 targets = (
                     data[self.target_columns].values.tolist()
                     + data[self.target_columns].values.tolist()
@@ -266,14 +296,14 @@ class KfoldDataloader(pl.LightningDataModule):
                 targets = data[self.target_columns].values.tolist()
         except:
             targets = []
-        inputs = self.tokenizing(data, reverse)
+        inputs = self.tokenizing(data, swap)
 
         return inputs, targets
 
     def setup(self, stage="fit"):
         if stage == "fit":
             total_data = pd.read_csv(self.train_path)
-            total_inputs, total_targets = self.preprocessing(total_data)
+            total_inputs, total_targets = self.preprocessing(total_data, self.swap)
             total_dataset = Dataset(total_inputs, total_targets)
 
             kf = KFold(n_splits=self.num_splits, shuffle=self.shuffle)
@@ -289,8 +319,8 @@ class KfoldDataloader(pl.LightningDataModule):
             test_data = pd.read_csv(self.test_path)
             predict_data = pd.read_csv(self.predict_path)
 
-            test_inputs, test_targets = self.preprocessing(test_data)
-            predict_inputs, predict_targets = self.preprocessing(predict_data)
+            test_inputs, test_targets = self.preprocessing(test_data, False)
+            predict_inputs, predict_targets = self.preprocessing(predict_data, False)
 
             self.test_dataset = Dataset(test_inputs, test_targets)
             self.predict_dataset = Dataset(predict_inputs, predict_targets)
