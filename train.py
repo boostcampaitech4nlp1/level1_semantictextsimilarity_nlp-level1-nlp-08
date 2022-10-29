@@ -1,15 +1,14 @@
 import re
 
-import wandb
-import torch
 import pytorch_lightning as pl
-
-from data_loader.data_loaders import Dataloader, KfoldDataloader
+import torch
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
+
 import model.model as module_arch
 import utils.utils as utils
-
-from pytorch_lightning.callbacks import ModelCheckpoint
+import wandb
+from data_loader.data_loaders import Dataloader, KfoldDataloader
 
 
 def train(args):
@@ -31,7 +30,7 @@ def train(args):
     )  # 새롭게 추가한 토큰 사이즈 반영
 
     wandb_logger = WandbLogger(project=args.project_name)
-    save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}/"
+    save_path = f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{wandb_logger.experiment.name}/"  # 모델 저장 디렉터리명에 wandb run name 추가
     trainer = pl.Trainer(
         accelerator="gpu",
         devices=1,
@@ -90,11 +89,15 @@ def k_train(args):
 
     results = []
     num_folds = args.num_folds
-
+    run_name = WandbLogger(project=project_name).experiment.name
     for k in range(num_folds):
         k_datamodule.prepare_data()
         k_datamodule.setup()
-        wandb_logger = WandbLogger(project=project_name, name=f"{k}th_fold")
+        name_ = f"{run_name}_{k+1}th_fold"
+        wandb_logger = WandbLogger(project=project_name, name=name_)
+        save_path = (
+            f"{args.save_path}{args.model_name}_maxEpoch{args.max_epoch}_batchSize{args.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+        )
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -108,7 +111,7 @@ def k_train(args):
                     mode=utils.monitor_config[args.monitor]["mode"],
                 ),
                 utils.best_save(
-                    save_path=args.save_path + f"{args.model_name}/",
+                    save_path=save_path,
                     top_k=args.top_k,
                     monitor=utils.monitor_config[args.monitor]["monitor"],
                     mode=utils.monitor_config[args.monitor]["mode"],
@@ -121,8 +124,9 @@ def k_train(args):
         score = trainer.test(model=Kmodel, datamodule=k_datamodule)
         wandb.finish()
         results.extend(score)
-        save_model = f"{args.save_path}{args.model_name}_fold_{k}_epoch_{args.max_epoch}_batchsize_{args.batch_size}.pt"
-        torch.save(Kmodel, save_model)
+        save_model = f"{args.save_path}{args.model_name}_fold_{k}_maxEpoch_{args.max_epoch}_batchsize_{args.batch_size}"
+        torch.save(Kmodel, save_model + ".pt")
+        trainer.save_checkpoint(save_model + ".ckpt")
 
     result = [x["test_pearson"] for x in results]
     score = sum(result) / num_folds
@@ -195,9 +199,7 @@ def sweep(args, exp_count):  # 메인에서 받아온 args와 실험을 반복�
 
         wandb_logger = WandbLogger(project=args.project_name)
 
-        trainer = pl.Trainer(
-            gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1
-        )
+        trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, logger=wandb_logger, log_every_n_steps=1)
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
 
