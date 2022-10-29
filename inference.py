@@ -2,7 +2,7 @@ import pandas as pd
 import pytorch_lightning as pl
 import torch
 
-import model.model as module_arch
+import train
 from data_loader.data_loaders import Dataloader
 
 
@@ -18,21 +18,7 @@ def inference(args):
     )
     trainer = pl.Trainer(gpus=1, max_epochs=args.max_epoch, log_every_n_steps=1)
 
-    if args.saved_model.split(".")[-1] == "ckpt":
-        model_name = "/".join(args.saved_model.split("/")[1:3]).split("_")[0]  # huggingface에 저장된 모델명을 parsing함
-        model = module_arch.Model(
-            model_name,
-            args.learning_rate,
-            args.loss,
-            dataloader.new_vocab_size(),
-            args.frozen,
-        )  # 새롭게 추가한 토큰 사이즈 반영
-
-        model = model.load_from_checkpoint(args.saved_model)
-    elif args.saved_model.split(".")[-1] == "pt":
-        model = torch.load(args.saved_model)
-    else:
-        exit("saved_model 파일 오류")
+    model = train.load_model(args, dataloader)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 
     model.eval()
 
