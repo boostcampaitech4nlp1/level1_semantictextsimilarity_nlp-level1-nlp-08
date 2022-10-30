@@ -123,7 +123,6 @@ def k_train(conf):
 
     results = []
     num_folds = conf.k_fold.num_folds
-    run_name = WandbLogger(project=project_name).experiment.name
 
     for k in range(num_folds):
         k_datamodule = KfoldDataloader(
@@ -146,8 +145,6 @@ def k_train(conf):
             conf.train.use_frozen,
         )
 
-        k_datamodule.prepare_data()
-        k_datamodule.setup()
         name_ = f"{k+1}th_fold"
         wandb_logger = WandbLogger(project=project_name, name=name_)
         save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
@@ -179,7 +176,7 @@ def k_train(conf):
 
         results.extend(score)
         save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
-        torch.save(Kmodel, save_model + ".pt")
+        # torch.save(Kmodel, save_model + ".pt")
         trainer.save_checkpoint(save_model + ".ckpt")
 
     result = [x["test_pearson"] for x in results]
