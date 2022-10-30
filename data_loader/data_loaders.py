@@ -94,6 +94,7 @@ class Dataloader(pl.LightningDataModule):
 
     def tokenizing(self, dataframe, swap):
         data = []
+        print("ToKenizer info: \n", self.tokenizer)
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
         ):
@@ -140,21 +141,22 @@ class Dataloader(pl.LightningDataModule):
         if stage == "fit":
             total_data = pd.read_csv(self.train_path)
 
-            split = StratifiedShuffleSplit(
-                n_splits=1, test_size=self.train_ratio, random_state=42
-            )
-            for train_idx, val_idx in split.split(
-                total_data, total_data["binary-label"]
-            ):
-                train_data = total_data.loc[train_idx]
-                val_data = total_data.loc[val_idx]
+            # split = StratifiedShuffleSplit(
+            #     n_splits=1, test_size=self.train_ratio, random_state=42
+            # )
+            # for train_idx, val_idx in split.split(
+            #     total_data, total_data["binary-label"]
+            # ):
+            #     train_data = total_data.loc[train_idx]
+            #     val_data = total_data.loc[val_idx]
 
-            # train_data = total_data.sample(frac=self.train_ratio)
-            # val_data = total_data.drop(train_data.index)
+            train_data = total_data.sample(frac=self.train_ratio)
+            val_data = total_data.drop(train_data.index)
 
             train_inputs, train_targets = self.preprocessing(train_data, self.swap)
             val_inputs, val_targets = self.preprocessing(val_data, self.swap)
-
+            print("Train data len: \n", len(train_inputs))
+            print("Valid data len: \n", len(val_inputs))
             self.train_dataset = Dataset(train_inputs, train_targets)
             self.val_dataset = Dataset(val_inputs, val_targets)
 
@@ -264,6 +266,7 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def tokenizing(self, dataframe, swap):
         data = []
+        print("ToKenizer info: \n", self.tokenizer)
         for idx, item in tqdm(
             dataframe.iterrows(), desc="tokenizing", total=len(dataframe)
         ):
@@ -321,6 +324,9 @@ class KfoldDataloader(pl.LightningDataModule):
 
             train_indexes, val_indexes = all_splits[self.k]
             train_indexes, val_indexes = train_indexes.tolist(), val_indexes.tolist()
+
+            print("Train data len: \n", len(train_indexes))
+            print("Valid data len: \n", len(val_indexes))
 
             self.train_dataset = [total_dataset[x] for x in train_indexes]
             self.val_dataset = [total_dataset[x] for x in val_indexes]

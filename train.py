@@ -175,9 +175,9 @@ def k_train(conf):
         wandb.finish()
 
         results.extend(score)
-        save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
+        # save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
         # torch.save(Kmodel, save_model + ".pt")
-        trainer.save_checkpoint(save_model + ".ckpt")
+        # trainer.save_checkpoint(save_model + ".ckpt")
 
     result = [x["test_pearson"] for x in results]
     score = sum(result) / num_folds
