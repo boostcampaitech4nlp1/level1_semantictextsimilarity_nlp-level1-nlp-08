@@ -224,7 +224,7 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
     }
 
     # pearson 점수가 최대화가 되는 방향으로 학습을 진행합니다.
-    sweep_config["metric"] = {"name": "val_pearson", "goal": "maximize"}
+    sweep_config["metric"] = {"name": "test_pearson", "goal": "maximize"}
 
     def sweep_train(config=None):
         wandb.init(config=config)
@@ -274,6 +274,9 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         )
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
+
+        trainer.save_checkpoint(save_path + "klue-roberta.ckpt")
+        torch.save(model, save_path + "klue-roberta.pt")
 
     sweep_id = wandb.sweep(
         sweep=sweep_config,  # config 딕셔너리를 추가합니다.

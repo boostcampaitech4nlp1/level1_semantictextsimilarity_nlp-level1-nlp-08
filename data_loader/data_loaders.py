@@ -81,7 +81,7 @@ class Dataloader(pl.LightningDataModule):
 
         self.tokenizer.model_max_length = 128
 
-        self.add_token = ["<PERSON>"]  # 넣을 토큰 지정 , "rtt", "sampled"
+        self.add_token = ["<PERSON>", "rtt", "sampled"]  # 넣을 토큰 지정
 
         self.new_token_count = self.tokenizer.add_tokens(
             self.add_token
@@ -101,8 +101,8 @@ class Dataloader(pl.LightningDataModule):
                 [item[text_column] for text_column in self.text_columns]
             )
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
-            # source = item["source"].split("-")[-1]
-            # text = source + "[SEP]" + text
+            source = item["source"].split("-")[-1]
+            text = source + "[SEP]" + text
             ###
             outputs = self.tokenizer(
                 text, add_special_tokens=True, padding="max_length", truncation=True
@@ -117,8 +117,8 @@ class Dataloader(pl.LightningDataModule):
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
                 ###
-                # source = item["source"].split("-")[-1]
-                # text = source + "[SEP]" + text
+                source = item["source"].split("-")[-1]
+                text = source + "[SEP]" + text
                 ###
                 outputs = self.tokenizer(
                     text, add_special_tokens=True, padding="max_length", truncation=True
@@ -149,7 +149,7 @@ class Dataloader(pl.LightningDataModule):
             total_data = pd.read_csv(self.train_path)
 
             split = StratifiedShuffleSplit(
-                n_splits=1, test_size=self.train_ratio, random_state=1004
+                n_splits=1, test_size=self.train_ratio, random_state=42
             )
             for train_idx, val_idx in split.split(
                 total_data, total_data["binary-label"]
