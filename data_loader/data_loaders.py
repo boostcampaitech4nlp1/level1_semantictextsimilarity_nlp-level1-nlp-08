@@ -149,7 +149,7 @@ class Dataloader(pl.LightningDataModule):
             total_data = pd.read_csv(self.train_path)
 
             split = StratifiedShuffleSplit(
-                n_splits=1, test_size=self.train_ratio, random_state=1004
+                n_splits=1, test_size=1-self.train_ratio, random_state=1004
             )
             for train_idx, val_idx in split.split(
                 total_data, total_data["binary-label"]
