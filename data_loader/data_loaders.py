@@ -318,7 +318,6 @@ class KfoldDataloader(pl.LightningDataModule):
                 random_state=self.split_seed,
             )
             all_splits = [k for k in kf.split(total_dataset)]
-            print(all_splits)
 
             train_indexes, val_indexes = all_splits[self.k]
             train_indexes, val_indexes = train_indexes.tolist(), val_indexes.tolist()
