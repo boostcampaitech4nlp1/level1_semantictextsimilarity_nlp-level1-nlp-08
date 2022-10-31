@@ -147,7 +147,7 @@ def k_train(conf):
 
         name_ = f"{k+1}th_fold"
         wandb_logger = WandbLogger(project=project_name, name=name_)
-        save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+        # save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -160,13 +160,12 @@ def k_train(conf):
                     patience=conf.utils.patience,
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
                 ),
-                utils.best_save(
-                    save_path=save_path,
-                    top_k=conf.utils.top_k,
-                    monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
-                    mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                    filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
-                ),
+                # utils.best_save(
+                # save_path=save_path,
+                # top_k=conf.utils.top_k,
+                # monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                # mode=utils.monitor_config[conf.utils.monitor]["mode"],
+                # filename="{epoch}-{step}-{val_pearson}",
             ],
         )
 
@@ -175,9 +174,9 @@ def k_train(conf):
         wandb.finish()
 
         results.extend(score)
-        # save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
+        save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k+1}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
         # torch.save(Kmodel, save_model + ".pt")
-        # trainer.save_checkpoint(save_model + ".ckpt")
+        trainer.save_checkpoint(save_model + ".ckpt")
 
     result = [x["test_pearson"] for x in results]
     score = sum(result) / num_folds
