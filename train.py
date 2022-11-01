@@ -17,7 +17,7 @@ def train(conf):
         "_",
         f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
     )
-    project_name = conf.wandb.project + project_name
+    project_name = conf.wandb.project
 
     dataloader = Dataloader(
         conf.model.model_name,

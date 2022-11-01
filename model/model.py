@@ -6,6 +6,8 @@ import pytorch_lightning as pl
 
 from . import loss as loss_module
 
+from torch.optim.lr_scheduler import StepLR
+
 
 class Model(pl.LightningModule):
     def __init__(
@@ -222,3 +224,22 @@ class Klue_CustomModel1(pl.LightningModule):
         )
 
         return loss
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        self.log(
+            "test_pearson",
+            torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()),
+        )
+
+    def predict_step(self, batch, batch_idx):
+        x = batch
+        logits = self(x)
+
+        return logits.squeeze()
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
+        scheduler = StepLR(optimizer, step_size=10, gamma=0.9)
+        return [optimizer], [scheduler]
