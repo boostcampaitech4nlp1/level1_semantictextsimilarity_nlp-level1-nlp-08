@@ -182,7 +182,7 @@ class Klue_CustomModel1(pl.LightningModule):
         self.loss_func = loss_module.loss_config[loss]
 
         self.MLP_HEAD = nn.Sequential(
-            nn.Dropout(0.2), nn.Tanh(), nn.Linear(self.classifier_input, 1)
+            nn.Dropout(0.2), nn.ReLU(), nn.Linear(self.classifier_input, 1)
         )
 
         if frozen == True:
