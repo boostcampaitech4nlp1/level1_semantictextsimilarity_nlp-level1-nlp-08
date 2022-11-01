@@ -29,7 +29,7 @@ def train(conf):
         conf.path.predict_path,
         conf.data.swap,
     )
-    model = module_arch.Model(
+    model = module_arch.Klue_CustomModel1(
         conf.model.model_name,
         conf.train.learning_rate,
         conf.train.loss,
@@ -139,7 +139,7 @@ def k_train(conf):
             conf.data.swap,
         )
 
-        Kmodel = module_arch.Model(
+        Kmodel = module_arch.Klue_CustomModel1(
             conf.model.model_name,
             conf.train.learning_rate,
             conf.train.loss,
@@ -244,7 +244,7 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
             conf.path.predict_path,
             conf.data.swap,
         )
-        model = module_arch.Model(
+        model = module_arch.Klue_CustomModel1(
             conf.model.model_name,
             config.lr,
             config.loss,
@@ -301,7 +301,7 @@ def load_model(
     model_name = "/".join(args.saved_model.split("/")[1:-1]).split("_")[0]
 
     if args.saved_model.split(".")[-1] == "ckpt":
-        model = module_arch.Model(
+        model = module_arch.Klue_CustomModel1(
             conf.model.model_name,
             conf.train.learning_rate,
             conf.train.loss,
