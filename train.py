@@ -114,11 +114,7 @@ def continue_train(args, conf):
 
 
 def k_train(conf):
-    project_name = re.sub(
-        "/",
-        "_",
-        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
-    )
+    project_name = f"_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
     project_name = conf.wandb.project + project_name
 
     results = []
@@ -161,11 +157,12 @@ def k_train(conf):
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
                 ),
                 # utils.best_save(
-                # save_path=save_path,
-                # top_k=conf.utils.top_k,
-                # monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
-                # mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                # filename="{epoch}-{step}-{val_pearson}",
+                #     save_path=save_path,
+                #     top_k=conf.utils.top_k,
+                #     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                #     mode=utils.monitor_config[conf.utils.monitor]["mode"],
+                #     filename="{epoch}-{step}-{val_pearson}",
+                # ),
             ],
         )
 
