@@ -205,6 +205,7 @@ class KfoldDataloader(pl.LightningDataModule):
         predict_path,
         use_swap,
     ):
+
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -312,24 +313,35 @@ class KfoldDataloader(pl.LightningDataModule):
     def setup(self, stage="fit"):
         if stage == "fit":
             total_data = pd.read_csv(self.train_path)
-            total_inputs, total_targets = self.preprocessing(total_data, self.swap)
-            total_dataset = Dataset(total_inputs, total_targets)
 
             kf = KFold(
                 n_splits=self.num_splits,
                 shuffle=self.shuffle,
                 random_state=self.split_seed,
             )
-            all_splits = [d_i for d_i in kf.split(total_dataset)]
-
+            all_splits = [d_i for d_i in kf.split(total_data)]
             train_indexes, val_indexes = all_splits[self.k]
             train_indexes, val_indexes = train_indexes.tolist(), val_indexes.tolist()
 
-            print("Train data len: \n", len(train_indexes))
-            print("Valid data len: \n", len(val_indexes))
+            print("Number of splits: \n", self.num_splits)
+            print("Before Swap Train data len: \n", len(train_indexes))
+            print("Before Swap Valid data len: \n", len(val_indexes))
 
-            self.train_dataset = [total_dataset[x] for x in train_indexes]
-            self.val_dataset = [total_dataset[x] for x in val_indexes]
+            train_inputs, train_targets = self.preprocessing(
+                total_data.loc[train_indexes], self.swap
+            )
+            valid_inputs, valid_targets = self.preprocessing(
+                total_data.loc[val_indexes], False
+            )
+
+            train_dataset = Dataset(train_inputs, train_targets)
+            valid_dataset = Dataset(valid_inputs, valid_targets)
+
+            print("After Swap Train data len: \n", len(train_inputs))
+            print("After Swap Valid data len: \n", len(valid_inputs))
+
+            self.train_dataset = train_dataset
+            self.val_dataset = valid_dataset
 
         else:
             test_data = pd.read_csv(self.test_path)
