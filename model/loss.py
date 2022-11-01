@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -22,9 +23,15 @@ def BCEWithLogitsLoss(output, target):
     return loss_func(output, target)
 
 
+def rmse_loss(output, target):
+    loss_func = nn.MSELoss()
+    return torch.sqrt(loss_func(output, target))
+
+
 loss_config = {
     "nll": nll_loss,
     "l1": L1_loss,
     "mse": mse_loss,
     "bce": BCEWithLogitsLoss,
+    "rmse": rmse_loss,
 }
