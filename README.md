@@ -40,3 +40,25 @@
 |------|---|---|
 |모델1|0.xx|blahblah|
 |모델2|0.xx|blahblah|
+---
+## 명령어 예제
+### Train
+```
+python main.py -m t -c base_config
+```
+### Continue Train
+```
+python main.py -m ct -s 'save_models/xlm-roberta-large_maxEpoch1_batchSize32_still-mountain-1/epoch=0-step=4203-val_pearson=0.9-val_loss=0.4.ckpt' -c base_config
+```
+### Inference
+```
+python main.py -m i -s 'save_models/xlm-roberta-large_maxEpoch1_batchSize32_still-mountain-1/epoch=0-step=4203-val_pearson=0.9-val_loss=0.4.ckpt' -c base_config
+```
+### WandB Sweep
+```
+python main.py -m e -c base_config
+```
+- 실행 후 반복 횟수 입력
+
+
+---
