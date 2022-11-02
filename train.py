@@ -161,7 +161,7 @@ def k_train(conf):
                     top_k=conf.utils.top_k,
                     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                    filename=f"{k}_best_pearson_model",
+                    filename=f"{k+1}_best_pearson_model",
                 ),
             ],
         )
