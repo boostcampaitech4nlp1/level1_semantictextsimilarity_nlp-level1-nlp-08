@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--saved_model",
         "-s",
-        default="save_models/model.pt",
+        default="save_models/",
         help="저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt",
     )
     args, _ = parser.parse_known_args()
@@ -53,12 +53,10 @@ if __name__ == "__main__":
         train.sweep(conf, exp_count)
 
     elif args.mode == "inference" or args.mode == "i":
+        # if conf.k_fold.use_k_fold:
+        #     inference.kfold_inference(args, conf)
+        # else:
         inference.inference(args, conf)
-        # inference.kfold_inference(
-        #     args,
-        #     "/opt/ml/level1_semantictextsimilarity_nlp-level1-nlp-08/folds",
-        #     "monologg/koelectra-base-v3-discriminator",
-        # )
     else:
         print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")

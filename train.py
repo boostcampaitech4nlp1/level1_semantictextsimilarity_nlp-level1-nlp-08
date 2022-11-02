@@ -143,7 +143,7 @@ def k_train(conf):
 
         name_ = f"{k+1}th_fold"
         wandb_logger = WandbLogger(project=project_name, name=name_)
-        # save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+        save_path = f"{conf.path.save_path}{conf.model.model_name}_{conf.train.max_epoch}_{conf.train.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -158,10 +158,10 @@ def k_train(conf):
                 ),
                 utils.best_save(
                     save_path=save_path,
-                    top_k=1,
+                    top_k=conf.utils.top_k,
                     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                    filename="best_pearson_model",
+                    filename=f"{k}_best_pearson_model",
                 ),
             ],
         )

@@ -18,7 +18,7 @@ def inference(args, conf):
         conf.path.predict_path,
         conf.data.swap,
     )
-    trainer = pl.Trainer(gpus=1, max_epochs=conf.train.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(gpus=1, max_epochs=conf.train.max_epoch)
 
     model, _, __ = train.load_model(
         args, conf, dataloader
@@ -28,26 +28,26 @@ def inference(args, conf):
 
     predictions = trainer.predict(model=model, datamodule=dataloader)
 
-    predictions = list(round(float(i), 1) for i in torch.cat(predictions))
-    predictions_n = [
-        round(5 * x / (max(predictions) - min(predictions) + 1e-8), 1)
-        for x in predictions
-    ]  # Normalize
-    predictions_e = [
-        round((x[0] + x[1]) / 2, 1) for x in zip(predictions, predictions_n)
-    ]  # Mean
+    predictions = list(float(i) for i in torch.cat(predictions))
+    # predictions_n = [
+    #     round(5 * x / (max(predictions) - min(predictions) + 1e-8), 1)
+    #     for x in predictions
+    # ]  # Normalize
+    # predictions_e = [
+    #     round((x[0] + x[1]) / 2, 1) for x in zip(predictions, predictions_n)
+    # ]  # Mean
 
     output = pd.read_csv("../data/sample_submission.csv")
-    output_n = pd.read_csv("../data/sample_submission.csv")
-    output_e = pd.read_csv("../data/sample_submission.csv")
+    # output_n = pd.read_csv("../data/sample_submission.csv")
+    # output_e = pd.read_csv("../data/sample_submission.csv")
 
     output["target"] = predictions
-    output_n["target"] = predictions_n
-    output_e["target"] = predictions_e
+    # output_n["target"] = predictions_n
+    # output_e["target"] = predictions_e
 
     output.to_csv("output.csv", index=False)
-    output_n.to_csv("output_n.csv", index=False)
-    output_e.to_csv("output_e.csv", index=False)
+    # output_n.to_csv("output_n.csv", index=False)
+    # output_e.to_csv("output_e.csv", index=False)
 
 
 def kfold_inference(args, conf):
@@ -62,18 +62,22 @@ def kfold_inference(args, conf):
         conf.data.swap,
     )
     ### 자치구역
-    models_path = "folds"
+    models_path = "save_models"
     ###
 
-    trainer = pl.Trainer(gpus=1, max_epochs=conf.train.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(gpus=1, max_epochs=conf.train.max_epoch)
 
     models = [model for (_, _, model) in os.walk(models_path)][0]
-    predict, predict_n, predict_e = [], [], []
-
+    predict = []
+    # predict_n = []
+    print("Models: ", len(models))
     for model in models:
-        path_ = "/opt/ml/level1_semantictextsimilarity_nlp-level1-nlp-08/folds/" + model
+        print("Predict proceeding: ", model)
+        path_ = (
+            "/opt/ml/level1_semantictextsimilarity_nlp-level1-nlp-08/save_models/"
+            + model
+        )
         if model.split(".")[-1] == "ckpt":
-            model_name = model_name
             model, _, __ = train.load_model(args, conf, dataloader)
             model = model.load_from_checkpoint(path_)
         elif model.split(".")[-1] == "pt":
@@ -85,30 +89,21 @@ def kfold_inference(args, conf):
 
         predictions = trainer.predict(model=model, datamodule=dataloader)
 
-        predictions = list(round(float(i), 1) for i in torch.cat(predictions))
-        predictions_n = [
-            round(5 * x / (max(predictions) - min(predictions) + 1e-8), 1)
-            for x in predictions
-        ]  # Normalize
-        predictions_e = [
-            round((x[0] + x[1]) / 2, 1) for x in zip(predictions, predictions_n)
-        ]  # Mean
+        predictions = list(float(i) for i in torch.cat(predictions))
+        # predictions_n = [
+        #     (5 * x / (max(predictions) - min(predictions))) for x in predictions
+        # ]  # Normalize
         predict.append(predictions)
-        predict_n.append(predictions_n)
-        predict_e.append(predictions_e)
+        # predict_n.append(predictions_n)
 
     predict = [round(sum(x) / len(models), 1) for x in zip(*predict)]
-    predict_n = [round(sum(x) / len(models), 1) for x in zip(*predict_n)]
-    predict_e = [round(sum(x) / len(models), 1) for x in zip(*predict_e)]
+    # predict_n = [round(sum(x) / len(models), 1) for x in zip(*predict_n)]
 
     output = pd.read_csv("../data/sample_submission.csv")
-    output_n = pd.read_csv("../data/sample_submission.csv")
-    output_e = pd.read_csv("../data/sample_submission.csv")
+    # output_n = pd.read_csv("../data/sample_submission.csv")
 
     output["target"] = predict
-    output_n["target"] = predict_n
-    output_e["target"] = predict_e
+    # output_n["target"] = predict_n
 
     output.to_csv("output.csv", index=False)
-    output_n.to_csv("output_n.csv", index=False)
-    output_e.to_csv("output_e.csv", index=False)
+    # output_n.to_csv("output_n.csv", index=False)
