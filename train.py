@@ -156,13 +156,13 @@ def k_train(conf):
                     patience=conf.utils.patience,
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
                 ),
-                # utils.best_save(
-                #     save_path=save_path,
-                #     top_k=conf.utils.top_k,
-                #     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
-                #     mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                #     filename="{epoch}-{step}-{val_pearson}",
-                # ),
+                utils.best_save(
+                    save_path=save_path,
+                    top_k=1,
+                    monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
+                    mode=utils.monitor_config[conf.utils.monitor]["mode"],
+                    filename="best_pearson_model",
+                ),
             ],
         )
 
