@@ -24,7 +24,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, text_preprossing=False):
+    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, text_preprocessing=False):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -72,15 +72,20 @@ class Dataloader(pl.LightningDataModule):
         # ###
         # 넣을 토큰 지정 , "rtt", "sampled"
         self.text_preprocessing = text_preprocessing
-        self.add_token = [
-            "<PERSON>",
-            # "...",
-            # "!!!",
-            # "???",
-            # "ㅎㅎㅎ",
-            # "ㅋㅋㅋ",
-            # "ㄷㄷㄷ",
-        ]
+        if self.text_preprocessing:
+            self.add_token = [
+                "<PERSON>",
+                "...",
+                # "!!!",
+                # "???",
+                "ㅎㅎㅎ",
+                "ㅋㅋㅋ",
+                "ㄷㄷㄷ",
+            ]
+        else:
+            self.add_token = [
+                "<PERSON>",
+            ]
 
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
         self.swap = swap
@@ -93,7 +98,8 @@ class Dataloader(pl.LightningDataModule):
         data = []
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            text = text_preprocessing(text)  # 전처리 추가
+            if self.text_preprocessing:
+                text = text_preprocessing_funnel(text)  # 전처리 추가
 
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
             # source = item["source"].split("-")[-1]
@@ -105,7 +111,9 @@ class Dataloader(pl.LightningDataModule):
         if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
-                text = text_preprocessing(text)  # 전처리 추가
+
+                if self.text_preprocessing:
+                    text = text_preprocessing_funnel(text)  # 전처리 추가
                 ###
                 # source = item["source"].split("-")[-1]
                 # text = source + "[SEP]" + text
@@ -334,6 +342,18 @@ class KfoldDataloader(pl.LightningDataModule):
 def text_preprocessing(sentence):
     s = re.sub(r"!!+", "!!!", sentence)  # !한개 이상 -> !!! 고정
     s = re.sub(r"\?\?+", "???", s)  # ?한개 이상 -> ??? 고정
+    s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
+    s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
+    s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
+    s = re.sub(r"ㅎㅎ+", "ㅎㅎㅎ", s)  # ㅎ두개 이상 -> ㅎㅎㅎ 고정
+    s = re.sub(r"ㅋㅋ+", "ㅋㅋㅋ", s)  # ㅋ두개 이상 -> ㅋㅋㅋ 고정
+    s = re.sub(r"ㄷㄷ+", "ㄷㄷㄷ", s)  # ㄷ두개 이상 -> ㄷㄷㄷ 고정
+    return s
+
+
+def text_preprocessing_funnel(sentence):
+    s = re.sub(r"!+", "!!!", sentence)  # !두개 이상 -> ! 고정
+    s = re.sub(r"\?+", "???", s)  # ?두개 이상 -> ? 고정
     s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
     s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
     s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
