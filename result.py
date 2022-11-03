@@ -85,7 +85,7 @@ def new_instance_FUNNEL(conf):  # sweep 부분 때문에 두번째 인자 추가
     return dataloader, model
 
 
-def full_model_step(conf, model_name):
+def full_model_step(conf, model_name, idx):
     SEED = conf.utils.seed
     random.seed(SEED)
     np.random.seed(SEED)
@@ -94,16 +94,16 @@ def full_model_step(conf, model_name):
     torch.backends.cudnn.benchmark = False
     torch.use_deterministic_algorithms(True)
 
-    if conf.model.model_name == "klue/roberta-large":
-        dataloader, model = new_instance_KLUE(conf)
-    elif conf.model.model_name == "xlm-roberta-large":
-        dataloader, model = new_instance_XLM(conf)
-    elif conf.model.model_name == "kykim/funnel-kor-base":
+    if idx == 0:
         dataloader, model = new_instance_FUNNEL(conf)
+    elif idx == 1:
+        dataloader, model = new_instance_KLUE(conf)
+    elif idx == 2:
+        dataloader, model = new_instance_XLM(conf)
     else:
         dataloader, model = new_instance_XLM(conf)
     project_name = conf.wandb.project
-    dataloader, model = create_instance.new_instance(conf)  # 함수화로 변경
+
     wandb_logger = WandbLogger(project=project_name)
     trainer = pl.Trainer(
         accelerator="gpu",
@@ -116,7 +116,7 @@ def full_model_step(conf, model_name):
     trainer.test(model=model, datamodule=dataloader)
 
     filename = re.sub("/", "_", conf.model.model_name)
-    trainer.save_checkpoint("./result/" + "{}.ckpt")
+    trainer.save_checkpoint("./result/" + f"{model_name}.ckpt")
     predictions = trainer.predict(
         model=model,
         datamodule=dataloader,
@@ -125,17 +125,15 @@ def full_model_step(conf, model_name):
 
     output = pd.read_csv("../data/sample_submission.csv")
     output["target"] = predictions
-    output.to_csv(f"output_{model_name}.csv", index=False)
+    output.to_csv(f"./result/output_{model_name}.csv", index=False)
     wandb.finish()
 
 
 if __name__ == "__main__":
-    # 하이퍼 파라미터 등 각종 설정값을 입력받습니다
-    # 터미널 실행 예시 : python3 run.py --batch_size=64 ...
-    # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
+
     config_name_list = ["funnel", "klue", "xlm"]
-    for model_name in config_name_list:
+    for idx, model_name in enumerate(config_name_list):
         conf = OmegaConf.load(f"./config/{model_name}_ensemble.yaml")
-        full_model_step(conf, model_name)
+        full_model_step(conf, model_name, idx)
 
     # for i in config_name_list:

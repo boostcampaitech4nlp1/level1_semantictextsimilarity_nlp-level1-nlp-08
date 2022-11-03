@@ -42,11 +42,7 @@ class Dataloader(pl.LightningDataModule):
 
         ## 손으로 수정하는 부분 좀 줄일 수 있게끔 수정
         model_list = {
-            "bert": [
-                "klue/roberta-small",
-                "klue/roberta-base",
-                "klue/roberta-large",
-            ],
+            "bert": ["klue/roberta-small", "klue/roberta-base", "klue/roberta-large", "xlm-roberta-large"],
             "electra": [
                 "monologg/koelectra-base-v3-discriminator",
                 "monologg/koelectra-base-finetuned-sentiment",
@@ -55,6 +51,7 @@ class Dataloader(pl.LightningDataModule):
                 "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
                 "jhgan/ko-sroberta-multitask",
             ],
+            "funnel": ["kykim/funnel-kor-base"],
         }
 
         if model_name in model_list["bert"]:
@@ -63,6 +60,8 @@ class Dataloader(pl.LightningDataModule):
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(self.model_name)
         elif model_name in model_list["roberta"]:
             self.tokenizer = transformers.RobertaTokenizer.from_pretrained(self.model_name)
+        elif model_name in model_list["funnel"]:
+            self.tokenizer = transformers.FunnelTokenizer.from_pretrained(self.model_name)
         else:
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
