@@ -32,7 +32,3 @@ k_fold:
   
 wandb:
   project: nlp-08-level1-sts
-
-
-# checkpoint 10
-# custommodel 1 Relu , Scheduler x
