@@ -73,8 +73,8 @@ class Model(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-
-        return optimizer
+        scheduler = LambdaLR(lr_lambda=lrsc_func)
+        return [optimizer], [scheduler]
 
 
 def lrsc_func(epoch):
