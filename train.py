@@ -159,7 +159,7 @@ def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 �
                 # parameter를 설정하는 기준을 선택합니다. uniform은 연속적으로 균등한 값들을 선택합니다.
                 "distribution": "uniform",
                 "min": 1e-5,  # 최소값을 설정합니다.
-                "max": 1e-4,  # 최대값을 설정합니다.
+                "max": 3e-5,  # 최대값을 설정합니다.
             },
         },
         # 위의 링크에 있던 예시

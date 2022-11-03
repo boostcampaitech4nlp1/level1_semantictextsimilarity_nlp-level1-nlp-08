@@ -21,7 +21,7 @@ def new_instance(conf, config=None):  # sweep 부분 때문에 두번째 인자 
         conf.path.predict_path,
         conf.data.swap,
     )
-    model = module_arch.Model(
+    model = module_arch.Funnel_CustomModel(
         conf.model.model_name,
         learning_rate,
         conf.train.loss,
