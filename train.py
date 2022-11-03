@@ -83,12 +83,11 @@ def continue_train(args, conf):
     # torch.save(model, save_path + "model.pt")
 
 
-def k_train(args, conf):
+def k_train(conf):
     project_name = conf.wandb.project
 
     results = []
     num_folds = conf.k_fold.num_folds
-    run_name = WandbLogger(project=project_name).experiment.name
 
     for k in range(num_folds):
         k_datamodule = KfoldDataloader(
@@ -111,11 +110,9 @@ def k_train(args, conf):
             conf.train.use_frozen,
         )
 
-        k_datamodule.prepare_data()
-        k_datamodule.setup()
-        name_ = f"{run_name}_{k+1}th_fold"
+        name_ = f"{k+1}th_fold"
         wandb_logger = WandbLogger(project=project_name, name=name_)
-        save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{name_}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+        save_path = f"{conf.path.save_path}{conf.model.model_name}_{conf.train.max_epoch}_{conf.train.batch_size}/"  # 모델 저장 디렉터리명에 wandb run name 추가
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -133,7 +130,7 @@ def k_train(args, conf):
                     top_k=conf.utils.top_k,
                     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                    filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
+                    filename=f"{k+1}_best_pearson_model",
                 ),
             ],
         )
@@ -143,8 +140,8 @@ def k_train(args, conf):
         wandb.finish()
 
         results.extend(score)
-        save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
-        torch.save(Kmodel, save_model + ".pt")
+        save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k+1}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
+        # torch.save(Kmodel, save_model + ".pt")
         trainer.save_checkpoint(save_model + ".ckpt")
 
     result = [x["test_pearson"] for x in results]
