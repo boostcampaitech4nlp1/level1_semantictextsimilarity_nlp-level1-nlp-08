@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--saved_model",
         "-s",
-        default="save_models/model.pt",
+        default=None,
         help="저장된 모델의 파일 경로를 입력해주세요. 예시: save_models/klue/roberta-small/epoch=?-step=?.ckpt 또는 save_models/model.pt",
     )
     args, _ = parser.parse_known_args()
@@ -46,14 +46,20 @@ if __name__ == "__main__":
             train.train(args, conf)
 
     elif args.mode == "continue train" or args.mode == "ct":
-        train.continue_train(args, conf)
+        if args.saved_model is None:
+            print("경로를 입력해주세요")
+        else:
+            train.continue_train(args, conf)
 
     elif args.mode == "exp" or args.mode == "e":
         exp_count = int(input("실험할 횟수를 입력해주세요 "))
-        train.sweep(conf, exp_count)
+        train.sweep(args, conf, exp_count)
 
     elif args.mode == "inference" or args.mode == "i":
-        inference.inference(args, conf)
+        if args.saved_model is None:
+            print("경로를 입력해주세요")
+        else:
+            inference.inference(args, conf)
     else:
         print("모드를 다시 설정해주세요 ")
         print("train     : t,\ttrain")

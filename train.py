@@ -86,7 +86,7 @@ def continue_train(args, conf):
     # torch.save(model, save_path + "model.pt")
 
 
-def k_train(conf):
+def k_train(args, conf):
     project_name = conf.wandb.project
 
     results = []
@@ -155,7 +155,7 @@ def k_train(conf):
     print(score)
 
 
-def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
+def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
     project_name = conf.wandb.project
 
     sweep_config = {
