@@ -21,7 +21,7 @@ def new_instance(conf, config=None):  # sweep 부분 때문에 두번째 인자 
         conf.path.predict_path,
         conf.data.swap,
     )
-    model = module_arch.Funnel_CustomModel(
+    model = module_arch.Model(
         conf.model.model_name,
         learning_rate,
         conf.train.loss,
@@ -52,3 +52,73 @@ def load_model(args, conf, dataloader: Dataloader, model):  # continue_train과 
     conf.path.save_path = save_path + "/"
     conf.model.model_name = "/".join(model_name.split("/")[1:])
     return model, args, conf
+
+
+def new_instance_XLM(conf):  # sweep 부분 때문에 두번째 인자 추가
+
+    dataloader = Dataloader(
+        conf.model.model_name,
+        conf.train.batch_size,
+        conf.data.train_ratio,
+        conf.data.shuffle,
+        conf.path.train_path,
+        conf.path.test_path,
+        conf.path.predict_path,
+        conf.data.swap,
+    )
+    model = module_arch.Xlm_CustomModel(
+        conf.model.model_name,
+        conf.train.learning_rate,
+        conf.train.loss,
+        dataloader.new_vocab_size(),
+        conf.train.use_frozen,
+    )  # 새롭게 추가한 토큰 사이즈 반영
+
+    return dataloader, model
+
+
+def new_instance_KLUE(conf):  # sweep 부분 때문에 두번째 인자 추가
+
+    dataloader = Dataloader(
+        conf.model.model_name,
+        conf.train.batch_size,
+        conf.data.train_ratio,
+        conf.data.shuffle,
+        conf.path.train_path,
+        conf.path.test_path,
+        conf.path.predict_path,
+        conf.data.swap,
+    )
+    model = module_arch.Klue_CustomModel(
+        conf.model.model_name,
+        conf.train.learning_rate,
+        conf.train.loss,
+        dataloader.new_vocab_size(),
+        conf.train.use_frozen,
+    )  # 새롭게 추가한 토큰 사이즈 반영
+
+    return dataloader, model
+
+
+def new_instance_FUNNEL(conf):  # sweep 부분 때문에 두번째 인자 추가
+
+    dataloader = Dataloader(
+        conf.model.model_name,
+        conf.train.batch_size,
+        conf.data.train_ratio,
+        conf.data.shuffle,
+        conf.path.train_path,
+        conf.path.test_path,
+        conf.path.predict_path,
+        conf.data.swap,
+        True,
+    )
+    model = module_arch.Funnel_CustomModel(
+        conf.model.model_name,
+        conf.train.learning_rate,
+        conf.train.loss,
+        dataloader.new_vocab_size(),
+        conf.train.use_frozen,
+    )  # 새롭게 추가한 토큰 사이즈 반영
+
+    return dataloader, model

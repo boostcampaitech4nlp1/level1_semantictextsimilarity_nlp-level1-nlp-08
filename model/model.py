@@ -304,4 +304,5 @@ class Xlm_CustomModel(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        return optimizer
+        scheduler = StepLR(optimizer, step_size=30, gamma=0.5)
+        return [optimizer], [scheduler]
