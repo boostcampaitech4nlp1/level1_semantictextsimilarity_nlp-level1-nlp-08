@@ -1,5 +1,3 @@
-import re
-
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.loggers import WandbLogger
@@ -50,7 +48,6 @@ def train(args, conf):
 
 
 def continue_train(args, conf):
-
     dataloader, model = create_instance.new_instance(conf)
     model, args, conf = create_instance.load_model(args, conf, dataloader, model)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 
@@ -167,13 +164,6 @@ def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 �
                 "min": 1e-5,  # 최소값을 설정합니다.
                 "max": 1e-4,  # 최대값을 설정합니다.
             },
-            "batch_size": {
-                "values": [
-                    16,
-                    32,
-                    64,
-                ]  # 배치 사이즈 조절, OOM 안나는 선에서 할 수 있도록 실험할 때 미리 세팅해주어야 함
-            },
             "loss": {
                 "values": [
                     "l1",
@@ -196,23 +186,7 @@ def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 �
         wandb.init(config=config)
         config = wandb.config
 
-        dataloader = Dataloader(
-            conf.model.model_name,
-            conf.train.batch_size,
-            conf.data.train_ratio,
-            conf.data.shuffle,
-            conf.path.train_path,
-            conf.path.test_path,
-            conf.path.predict_path,
-            conf.data.swap,
-        )
-        model = module_arch.Model(
-            conf.model.model_name,
-            config.lr,
-            config.loss,
-            dataloader.new_vocab_size(),
-            conf.train.use_frozen,
-        )
+        dataloader, model = create_instance.new_instance(conf, config=None)
 
         wandb_logger = WandbLogger(project=project_name)
         save_path = f"{conf.path.save_path}{conf.model.model_name}_sweep_id_{wandb.run.name}/"
