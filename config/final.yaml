@@ -1,0 +1,34 @@
+path:
+  train_path: ../data/train.csv
+  test_path: ../data/dev.csv
+  predict_path: ../data/test.csv
+  save_path: save_models/
+
+data:
+  shuffle: True
+  train_ratio: 0.8
+  swap: True
+
+model:
+  model_name: xlm-roberta-large
+
+train:
+  max_epoch: 50
+  batch_size: 32
+  learning_rate: 5.6e-6
+  loss: mse
+  use_frozen: False
+  
+utils:
+  seed: 42
+  monitor: val_pearson
+  patience: 30
+  top_k: 5
+
+k_fold:
+  use_k_fold: False
+  num_folds: 3
+  num_split: 5
+  
+wandb:
+  project: final_exp
