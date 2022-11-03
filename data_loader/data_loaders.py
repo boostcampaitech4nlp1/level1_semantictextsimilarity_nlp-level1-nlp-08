@@ -24,17 +24,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(
-        self,
-        model_name,
-        batch_size,
-        train_ratio,
-        shuffle,
-        train_path,
-        test_path,
-        predict_path,
-        swap,
-    ):
+    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, text_preprossing=False):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -81,14 +71,15 @@ class Dataloader(pl.LightningDataModule):
         # self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
         # ###
         # 넣을 토큰 지정 , "rtt", "sampled"
+        self.text_preprocessing = text_preprocessing
         self.add_token = [
             "<PERSON>",
-            # "...",
-            # "!!!",
-            # "???",
-            # "ㅎㅎㅎ",
-            # "ㅋㅋㅋ",
-            # "ㄷㄷㄷ",
+            "...",
+            "!!!",
+            "???",
+            "ㅎㅎㅎ",
+            "ㅋㅋㅋ",
+            "ㄷㄷㄷ",
         ]
 
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
@@ -102,7 +93,7 @@ class Dataloader(pl.LightningDataModule):
         data = []
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            # text = text_preprocessing(text)  # 전처리 추가
+            text = text_preprocessing(text)  # 전처리 추가
 
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
             # source = item["source"].split("-")[-1]
@@ -114,7 +105,7 @@ class Dataloader(pl.LightningDataModule):
         if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
-                # text = text_preprocessing(text)  # 전처리 추가
+                text = text_preprocessing(text)  # 전처리 추가
                 ###
                 # source = item["source"].split("-")[-1]
                 # text = source + "[SEP]" + text
