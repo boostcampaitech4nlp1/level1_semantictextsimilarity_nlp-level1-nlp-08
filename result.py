@@ -85,7 +85,7 @@ def new_instance_FUNNEL(conf):  # sweep 부분 때문에 두번째 인자 추가
     return dataloader, model
 
 
-def full_model_step(conf):
+def full_model_step(conf, model_name):
     SEED = conf.utils.seed
     random.seed(SEED)
     np.random.seed(SEED)
@@ -125,8 +125,7 @@ def full_model_step(conf):
 
     output = pd.read_csv("../data/sample_submission.csv")
     output["target"] = predictions
-    output.to_csv(f"output_{filename}.csv", index=False)
-
+    output.to_csv(f"output_{model_name}.csv", index=False)
     wandb.finish()
 
 
@@ -134,6 +133,9 @@ if __name__ == "__main__":
     # 하이퍼 파라미터 등 각종 설정값을 입력받습니다
     # 터미널 실행 예시 : python3 run.py --batch_size=64 ...
     # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
+    config_name_list = ["funnel", "klue", "xlm"]
+    for model_name in config_name_list:
+        conf = OmegaConf.load(f"./config/{model_name}_ensemble.yaml")
+        full_model_step(conf, model_name)
 
-    conf = OmegaConf.load(f"./config/base_config.yaml")
-    full_model_step(conf)
+    # for i in config_name_list:
