@@ -83,7 +83,7 @@ def continue_train(args, conf):
     # torch.save(model, save_path + "model.pt")
 
 
-def k_train(conf):
+def k_train(args, conf):
     project_name = conf.wandb.project
 
     results = []
