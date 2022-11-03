@@ -74,12 +74,12 @@ class Dataloader(pl.LightningDataModule):
         self.text_preprocessing = text_preprocessing
         self.add_token = [
             "<PERSON>",
-            "...",
-            "!!!",
-            "???",
-            "ㅎㅎㅎ",
-            "ㅋㅋㅋ",
-            "ㄷㄷㄷ",
+            # "...",
+            # "!!!",
+            # "???",
+            # "ㅎㅎㅎ",
+            # "ㅋㅋㅋ",
+            # "ㄷㄷㄷ",
         ]
 
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
