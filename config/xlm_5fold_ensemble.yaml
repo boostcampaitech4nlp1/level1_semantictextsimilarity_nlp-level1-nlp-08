@@ -10,24 +10,24 @@ data:
   swap: True
 
 model:
-  model_name: kykim/funnel-kor-base
+  model_name: xlm-roberta-large
 
 train:
-  max_epoch: 35
+  max_epoch: 40
   batch_size: 64
-  learning_rate: 0.00002137
+  learning_rate: 0.0000056
   loss: mse
   use_frozen: False
   
 utils:
   seed: 42
   monitor: val_pearson
-  patience: 100
+  patience: 25
   top_k: 1
 
 k_fold:
-  use_k_fold: False
-  num_folds: 3
+  use_k_fold: True
+  num_folds: 5
   num_split: 5
   
 wandb:

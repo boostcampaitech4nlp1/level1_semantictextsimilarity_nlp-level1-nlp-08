@@ -10,19 +10,19 @@ data:
   swap: True
 
 model:
-  model_name: kykim/funnel-kor-base
+  model_name: klue/roberta-large
 
 train:
-  max_epoch: 35
-  batch_size: 64
-  learning_rate: 0.00002137
+  max_epoch: 11
+  batch_size: 32
+  learning_rate: 1e-5
   loss: mse
   use_frozen: False
-  
+
 utils:
   seed: 42
   monitor: val_pearson
-  patience: 100
+  patience: 130
   top_k: 1
 
 k_fold:
@@ -32,3 +32,7 @@ k_fold:
   
 wandb:
   project: nlp-08-level1-sts
+
+
+# checkpoint 10
+# custommodel 1 Relu , Scheduler x

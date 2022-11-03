@@ -13,7 +13,6 @@ import create_instance
 def train(args, conf):
     project_name = conf.wandb.project
     dataloader, model = create_instance.new_instance(conf)  # 함수화로 변경
-
     wandb_logger = WandbLogger(project=project_name)
 
     save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{wandb_logger.experiment.name}/"
