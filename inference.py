@@ -33,11 +33,14 @@ def inference(args, conf):
     predictions_b = list(round(float(i), 1) for i in predictions)  # base postprocess
     predictions_n = [round(5 * x / (max(predictions) - min(predictions) + 1e-8), 1) for x in predictions]  # Normalize
 
+    output = pd.read_csv("../data/sample_submission.csv")
     output_b = pd.read_csv("../data/sample_submission.csv")
     output_n = pd.read_csv("../data/sample_submission.csv")
 
+    output["target"] = predictions
     output_b["target"] = predictions_b
     output_n["target"] = predictions_n
 
+    output.to_csv("output.csv", index=False)
     output_b.to_csv("output_b.csv", index=False)
     output_n.to_csv("output_n.csv", index=False)
