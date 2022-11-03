@@ -9,14 +9,18 @@ from torch.optim.lr_scheduler import LambdaLR
 
 
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):  # 새로운 vocab 사이즈 설정
+    def __init__(
+        self, model_name, lr, loss, new_vocab_size, frozen
+    ):  # 새로운 vocab 사이즈 설정
         super().__init__()
         self.save_hyperparameters()
 
         self.model_name = model_name
         self.lr = lr
 
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
+        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model_name_or_path=model_name, num_labels=1
+        )
 
         if frozen == "True":
             self.frozen()
@@ -96,15 +100,19 @@ class ExampleCustomModel(pl.LightningModule):
         self.model_name = model_name
         self.lr = lr
         self.classifier_input = 1024
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(  # 기존 모델
-            pretrained_model_name_or_path=model_name,
-            num_labels=self.classifier_input,
+        self.plm = (
+            transformers.AutoModelForSequenceClassification.from_pretrained(  # 기존 모델
+                pretrained_model_name_or_path=model_name,
+                num_labels=self.classifier_input,
+            )
         )
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
 
         self.loss_func = loss_module.loss_config[loss]
 
-        self.MLP_HEAD = nn.Sequential(nn.Dropout(0.2), nn.Tanh(), nn.Linear(self.classifier_input, 1))
+        self.MLP_HEAD = nn.Sequential(
+            nn.Dropout(0.2), nn.Tanh(), nn.Linear(self.classifier_input, 1)
+        )
 
         if frozen == "True":
             self.frozen()
