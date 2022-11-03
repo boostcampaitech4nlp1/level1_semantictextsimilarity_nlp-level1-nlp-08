@@ -26,7 +26,11 @@ def inference(args, conf):
 
     model.eval()
 
-    predictions = trainer.predict(model=model, datamodule=dataloader)
+    predictions = trainer.predict(
+        model=model,
+        datamodule=dataloader,
+    )
+    trainer.test(model=model, datamodule=dataloader)
 
     predictions = list(float(i) for i in torch.cat(predictions))
     # predictions_n = [

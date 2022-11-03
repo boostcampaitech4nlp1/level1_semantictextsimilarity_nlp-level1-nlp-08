@@ -9,6 +9,7 @@ import utils.utils as utils
 import wandb
 from data_loader.data_loaders import Dataloader, KfoldDataloader
 
+
 # train.train(conf)
 def train(conf):
     project_name = re.sub(
@@ -78,9 +79,7 @@ def continue_train(args, conf):
         conf.path.predict_path,
         conf.data.swap,
     )
-    model, args, conf = load_model(
-        args, conf, dataloader
-    )  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
+    model, args, conf = load_model(args, conf, dataloader)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 
     wandb_logger = WandbLogger(project=conf.wandb.project)
     save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{wandb_logger.experiment.name}/"  # 모델 저장 디렉터리명에 wandb run name 추가
@@ -242,9 +241,7 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         )
 
         wandb_logger = WandbLogger(project=project_name)
-        save_path = (
-            f"{conf.path.save_path}{conf.model.model_name}_sweep_id_{wandb.run.name}/"
-        )
+        save_path = f"{conf.path.save_path}{conf.model.model_name}_sweep_id_{wandb.run.name}/"
         trainer = pl.Trainer(
             gpus=1,
             max_epochs=conf.train.max_epoch,
@@ -267,6 +264,8 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         )
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
+        trainer.save_checkpoint(save_path + "model.ckpt")
+        torch.save(model, save_path + "model.pt")
 
         trainer.save_checkpoint(save_path + "klue-roberta.ckpt")
         torch.save(model, save_path + "klue-roberta.pt")
@@ -279,9 +278,7 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
     wandb.agent(sweep_id=sweep_id, function=sweep_train, count=exp_count)  # 실험할 횟수 지정
 
 
-def load_model(
-    args, conf, dataloader: Dataloader
-):  # continue_train과 inference시에 모델을 불러오는 기능은 같기 때문에 메서드로 구현함
+def load_model(args, conf, dataloader: Dataloader):  # continue_train과 inference시에 모델을 불러오는 기능은 같기 때문에 메서드로 구현함
     # 불러온 모델이 저장되어 있는 디렉터리를 parsing함
     # ex) 'save_models/klue/roberta-small_maxEpoch1_batchSize32_blooming-wind-57'
     save_path = "/".join(args.saved_model.split("/")[:-1])
@@ -300,11 +297,7 @@ def load_model(
         )  # 새롭게 추가한 토큰 사이즈 반영
         model = model.load_from_checkpoint(args.saved_model)
 
-    elif (
-        args.saved_model.split(".")[-1] == "pt"
-        and args.mode != "continue train"
-        and args.mode != "ct"
-    ):
+    elif args.saved_model.split(".")[-1] == "pt" and args.mode != "continue train" and args.mode != "ct":
         model = torch.load(args.saved_model)
 
     else:

@@ -1,10 +1,11 @@
+import re
+
 import pandas as pd
 import pytorch_lightning as pl
 import torch
 import transformers
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedShuffleSplit
 from tqdm.auto import tqdm
-from sklearn.model_selection import StratifiedShuffleSplit
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -141,22 +142,24 @@ class Dataloader(pl.LightningDataModule):
         if stage == "fit":
             total_data = pd.read_csv(self.train_path)
 
-            # split = StratifiedShuffleSplit(
-            #     n_splits=1, test_size=self.train_ratio, random_state=42
-            # )
-            # for train_idx, val_idx in split.split(
-            #     total_data, total_data["binary-label"]
-            # ):
-            #     train_data = total_data.loc[train_idx]
-            #     val_data = total_data.loc[val_idx]
+            split = StratifiedShuffleSplit(
+                n_splits=1, test_size=1 - self.train_ratio, random_state=1004
+            )  # 층화 추출 fix
+            for train_idx, val_idx in split.split(
+                total_data, total_data["binary-label"]
+            ):
+                train_data = total_data.loc[train_idx]
+                val_data = total_data.loc[val_idx]
 
-            train_data = total_data.sample(frac=self.train_ratio)
-            val_data = total_data.drop(train_data.index)
+            # train_data = total_data.sample(frac=self.train_ratio)
+            # val_data = total_data.drop(train_data.index)
 
             train_inputs, train_targets = self.preprocessing(train_data, self.swap)
             val_inputs, val_targets = self.preprocessing(val_data, self.swap)
+
             print("Train data len: \n", len(train_inputs))
             print("Valid data len: \n", len(val_inputs))
+
             self.train_dataset = Dataset(train_inputs, train_targets)
             self.val_dataset = Dataset(val_inputs, val_targets)
 
@@ -274,6 +277,7 @@ class KfoldDataloader(pl.LightningDataModule):
             text = "[SEP]".join(
                 [item[text_column] for text_column in self.text_columns]
             )
+            # text = text_preprocessing(text)
             outputs = self.tokenizer(
                 text, add_special_tokens=True, padding="max_length", truncation=True
             )
@@ -286,6 +290,7 @@ class KfoldDataloader(pl.LightningDataModule):
                 text = "[SEP]".join(
                     [item[text_column] for text_column in self.text_columns[::-1]]
                 )
+                # text = text_preprocessing(text)
                 outputs = self.tokenizer(
                     text, add_special_tokens=True, padding="max_length", truncation=True
                 )
@@ -373,3 +378,15 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def new_vocab_size(self):
         return self.new_token_count + self.tokenizer.vocab_size
+
+
+def text_preprocessing(sentence):
+    s = re.sub(r"!!+", "!!!", sentence)  # !한개 이상 -> !!! 고정
+    s = re.sub(r"\?\?+", "???", s)  # ?한개 이상 -> ??? 고정
+    s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
+    s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
+    s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
+    s = re.sub(r"ㅎㅎ+", "ㅎㅎㅎ", s)  # ㅎ두개 이상 -> ㅎㅎㅎ 고정
+    s = re.sub(r"ㅋㅋ+", "ㅋㅋㅋ", s)  # ㅋ두개 이상 -> ㅋㅋㅋ 고정
+    s = re.sub(r"ㄷㄷ+", "ㄷㄷㄷ", s)  # ㄷ두개 이상 -> ㄷㄷㄷ 고정
+    return s
