@@ -7,12 +7,9 @@ import torch
 def new_instance(conf, config=None):  # sweep 부분 때문에 두번째 인자 추가
 
     if config is None:
-        config = conf
         learning_rate = conf.train.learning_rate
-        loss = conf.train.loss
     else:
         learning_rate = config.learning_rate
-        loss = config.loss
 
     dataloader = Dataloader(
         conf.model.model_name,
@@ -27,7 +24,7 @@ def new_instance(conf, config=None):  # sweep 부분 때문에 두번째 인자 
     model = module_arch.Model(
         conf.model.model_name,
         learning_rate,
-        loss,
+        conf.train.loss,
         dataloader.new_vocab_size(),
         conf.train.use_frozen,
     )  # 새롭게 추가한 토큰 사이즈 반영

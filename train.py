@@ -164,12 +164,6 @@ def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 �
                 "min": 1e-5,  # 최소값을 설정합니다.
                 "max": 1e-4,  # 최대값을 설정합니다.
             },
-            "loss": {
-                "values": [
-                    "l1",
-                    "mse",
-                ]  # loss 사용할 것들 지정, bce는 이진 분류가 아니기 때문에 일단 제외
-            },
         },
         # 위의 링크에 있던 예시
         "early_terminate": {
