@@ -41,9 +41,9 @@ if __name__ == "__main__":
     if args.mode == "train" or args.mode == "t":
         # num_folds 변수 확인
         if conf.k_fold.use_k_fold:
-            train.k_train(conf)
+            train.k_train(args, conf)
         else:
-            train.train(conf)
+            train.train(args, conf)
 
     elif args.mode == "continue train" or args.mode == "ct":
         train.continue_train(args, conf)

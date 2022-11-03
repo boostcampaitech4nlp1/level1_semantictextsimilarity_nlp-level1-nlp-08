@@ -9,35 +9,15 @@ import utils.utils as utils
 import wandb
 from data_loader.data_loaders import Dataloader, KfoldDataloader
 
+import create_instance
 
 # train.train(conf)
-def train(conf):
-    project_name = re.sub(
-        "/",
-        "_",
-        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
-    )
-    project_name = conf.wandb.project + project_name
-
-    dataloader = Dataloader(
-        conf.model.model_name,
-        conf.train.batch_size,
-        conf.data.train_ratio,
-        conf.data.shuffle,
-        conf.path.train_path,
-        conf.path.test_path,
-        conf.path.predict_path,
-        conf.data.swap,
-    )
-    model = module_arch.Model(
-        conf.model.model_name,
-        conf.train.learning_rate,
-        conf.train.loss,
-        dataloader.new_vocab_size(),
-        conf.train.use_frozen,
-    )  # 새롭게 추가한 토큰 사이즈 반영
+def train(args, conf):
+    project_name = conf.wandb.project
+    dataloader, model = create_instance.new_instance(conf)  # 함수화로 변경
 
     wandb_logger = WandbLogger(project=project_name)
+
     save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{wandb_logger.experiment.name}/"
     trainer = pl.Trainer(
         accelerator="gpu",
@@ -63,23 +43,16 @@ def train(conf):
 
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
+    wandb.finish()
 
     trainer.save_checkpoint(save_path + "model.ckpt")
-    torch.save(model, save_path + "model.pt")
+    # torch.save(model, save_path + "model.pt")
 
 
 def continue_train(args, conf):
-    dataloader = Dataloader(
-        conf.model.model_name,
-        conf.train.batch_size,
-        conf.data.train_ratio,
-        conf.data.shuffle,
-        conf.path.train_path,
-        conf.path.test_path,
-        conf.path.predict_path,
-        conf.data.swap,
-    )
-    model, args, conf = load_model(args, conf, dataloader)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
+
+    dataloader, model = create_instance.new_instance(conf)
+    model, args, conf = create_instance.load_model(args, conf, dataloader, model)  # train.py에 저장된 모델을 불러오는 메서드 따로 작성함
 
     wandb_logger = WandbLogger(project=conf.wandb.project)
     save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{wandb_logger.experiment.name}/"  # 모델 저장 디렉터리명에 wandb run name 추가
@@ -107,18 +80,14 @@ def continue_train(args, conf):
 
     trainer.fit(model=model, datamodule=dataloader)
     trainer.test(model=model, datamodule=dataloader)
+    wandb.finish()
 
     trainer.save_checkpoint(save_path + "model.ckpt")
-    torch.save(model, save_path + "model.pt")
+    # torch.save(model, save_path + "model.pt")
 
 
 def k_train(conf):
-    project_name = re.sub(
-        "/",
-        "_",
-        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
-    )
-    project_name = conf.wandb.project + project_name
+    project_name = conf.wandb.project
 
     results = []
     num_folds = conf.k_fold.num_folds
@@ -187,12 +156,7 @@ def k_train(conf):
 
 
 def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
-    project_name = re.sub(
-        "/",
-        "_",
-        f"{conf.model.model_name}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}",
-    )
-    project_name = conf.wandb.project + project_name
+    project_name = conf.wandb.project
 
     sweep_config = {
         "method": "bayes",  # random: 임의의 값의 parameter 세트를 선택, #bayes : 베이지안 최적화
@@ -226,7 +190,7 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
     }
 
     # pearson 점수가 최대화가 되는 방향으로 학습을 진행합니다.
-    sweep_config["metric"] = {"name": "val_pearson", "goal": "maximize"}
+    sweep_config["metric"] = {"name": "test_pearson", "goal": "maximize"}
 
     def sweep_train(config=None):
         wandb.init(config=config)
@@ -275,7 +239,7 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
         trainer.fit(model=model, datamodule=dataloader)
         trainer.test(model=model, datamodule=dataloader)
         trainer.save_checkpoint(save_path + "model.ckpt")
-        torch.save(model, save_path + "model.pt")
+        # torch.save(model, save_path + "model.pt")
 
     sweep_id = wandb.sweep(
         sweep=sweep_config,  # config 딕셔너리를 추가합니다.
@@ -283,33 +247,3 @@ def sweep(conf, exp_count):  # 메인에서 받아온 args와 실험을 반복�
     )
 
     wandb.agent(sweep_id=sweep_id, function=sweep_train, count=exp_count)  # 실험할 횟수 지정
-
-
-def load_model(args, conf, dataloader: Dataloader):  # continue_train과 inference시에 모델을 불러오는 기능은 같기 때문에 메서드로 구현함
-    # 불러온 모델이 저장되어 있는 디렉터리를 parsing함
-    # ex) 'save_models/klue/roberta-small_maxEpoch1_batchSize32_blooming-wind-57'
-    save_path = "/".join(args.saved_model.split("/")[:-1])
-
-    # huggingface에 저장된 모델명을 parsing함
-    # ex) 'klue/roberta-small'
-    model_name = "/".join(args.saved_model.split("/")[1:-1]).split("_")[0]
-
-    if args.saved_model.split(".")[-1] == "ckpt":
-        model = module_arch.Model(
-            conf.model.model_name,
-            conf.train.learning_rate,
-            conf.train.loss,
-            dataloader.new_vocab_size(),
-            conf.train.use_frozen,
-        )  # 새롭게 추가한 토큰 사이즈 반영
-        model = model.load_from_checkpoint(args.saved_model)
-
-    elif args.saved_model.split(".")[-1] == "pt" and args.mode != "continue train" and args.mode != "ct":
-        model = torch.load(args.saved_model)
-
-    else:
-        exit("saved_model 파일 오류")
-
-    conf.path.save_path = save_path + "/"
-    conf.model.model_name = "/".join(model_name.split("/")[1:])
-    return model, args, conf
