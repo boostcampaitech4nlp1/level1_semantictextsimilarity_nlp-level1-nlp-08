@@ -297,4 +297,4 @@ if __name__ == "__main__":
 
     output = pd.read_csv("../data/sample_submission.csv")
     output["target"] = mean_values
-    output.to_csv("final_submit.csv", index=False)
+    output.to_csv("final_submit.csv", index=False)  # 찐 끗  진짜 다들 수고 많으셨습니다
