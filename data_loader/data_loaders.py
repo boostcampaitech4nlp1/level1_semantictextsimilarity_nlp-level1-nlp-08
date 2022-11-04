@@ -6,6 +6,7 @@ import torch
 import transformers
 from sklearn.model_selection import KFold, StratifiedShuffleSplit
 from tqdm.auto import tqdm
+import os
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -218,22 +219,6 @@ class KfoldDataloader(pl.LightningDataModule):
         self.predict_dataset = None
 
         ## 손으로 수정하는 부분 좀 줄일 수 있게끔 수정
-        model_list = {
-            "bert": [
-                "klue/roberta-small",
-                "klue/roberta-base",
-                "klue/roberta-large",
-            ],
-            "electra": [
-                "monologg/koelectra-base-v3-discriminator",
-                "monologg/koelectra-base-finetuned-sentiment",
-            ],
-            "roberta": [
-                "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
-                "jhgan/ko-sroberta-multitask",
-            ],
-        }
-
         model_list = {
             "bert": [
                 "klue/roberta-small",
