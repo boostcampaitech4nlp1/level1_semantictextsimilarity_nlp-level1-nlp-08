@@ -305,4 +305,14 @@ class Xlm_CustomModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
         scheduler = StepLR(optimizer, step_size=30, gamma=0.5)
+        # scheduler = LambdaLR(optimizer, lr_lambda=triangle_func)
         return [optimizer], [scheduler]
+
+
+# def triangle_func(epoch):
+#     max_lr_epoch = 50  # 삼각형의 꼭짓점
+#     grad = 1 / max_lr_epoch  # 기울기
+#     if max_lr_epoch > epoch:
+#         return grad * epoch
+#     else:
+#         return max(0, 1 - grad * (epoch - max_lr_epoch))
