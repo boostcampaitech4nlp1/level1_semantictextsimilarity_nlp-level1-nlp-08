@@ -5,7 +5,7 @@ import torchmetrics
 import pytorch_lightning as pl
 
 from . import loss as loss_module
-from torch.optim.lr_scheduler import StepLR, ExponentialLR
+from torch.optim.lr_scheduler import StepLR, ExponentialLR, LambdaLR
 
 
 class Model(pl.LightningModule):
