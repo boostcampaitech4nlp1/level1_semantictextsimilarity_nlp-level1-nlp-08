@@ -81,12 +81,12 @@ class Dataloader(pl.LightningDataModule):
         if self.text_preprocessing:
             self.add_token = [
                 "<PERSON>",
-                # "...",
+                "...",
                 # "!!!",
                 # "???",
-                # "ㅎㅎㅎ",
-                # "ㅋㅋㅋ",
-                # "ㄷㄷㄷ",
+                "ㅎㅎㅎ",
+                "ㅋㅋㅋ",
+                "ㄷㄷㄷ",
             ]
         else:
             self.add_token = [
