@@ -1,3 +1,4 @@
+import os
 import re
 
 import pandas as pd
@@ -6,7 +7,6 @@ import torch
 import transformers
 from sklearn.model_selection import KFold, StratifiedShuffleSplit
 from tqdm.auto import tqdm
-import os
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -56,7 +56,9 @@ class Dataloader(pl.LightningDataModule):
                 "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
                 "jhgan/ko-sroberta-multitask",
             ],
-            "funnel": ["kykim/funnel-kor-base"],
+            "funnel": [
+                "kykim/funnel-kor-base",
+            ],
         }
 
         if model_name in model_list["bert"]:
@@ -79,12 +81,12 @@ class Dataloader(pl.LightningDataModule):
         if self.text_preprocessing:
             self.add_token = [
                 "<PERSON>",
-                "...",
+                # "...",
                 # "!!!",
                 # "???",
-                "ㅎㅎㅎ",
-                "ㅋㅋㅋ",
-                "ㄷㄷㄷ",
+                # "ㅎㅎㅎ",
+                # "ㅋㅋㅋ",
+                # "ㄷㄷㄷ",
             ]
         else:
             self.add_token = [
