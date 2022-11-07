@@ -1,11 +1,11 @@
-import transformers
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torchmetrics
-import pytorch_lightning as pl
+import transformers
+from torch.optim.lr_scheduler import ExponentialLR, LambdaLR, StepLR
 
 from . import loss as loss_module
-from torch.optim.lr_scheduler import StepLR, ExponentialLR, LambdaLR
 
 
 class Model(pl.LightningModule):
@@ -16,7 +16,10 @@ class Model(pl.LightningModule):
         self.model_name = model_name
         self.lr = lr
 
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
+        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model_name_or_path=model_name,
+            num_labels=1,
+        )
 
         if frozen == True:
             self.frozen()
@@ -93,7 +96,11 @@ class Klue_CustomModel(pl.LightningModule):
 
         self.loss_func = loss_module.loss_config[loss]
 
-        self.MLP_HEAD = nn.Sequential(nn.Dropout(0.2), nn.ReLU(), nn.Linear(self.classifier_input, 1))
+        self.MLP_HEAD = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.ReLU(),
+            nn.Linear(self.classifier_input, 1),
+        )
 
         if frozen == True:
             self.frozen()
@@ -164,7 +171,9 @@ class Funnel_CustomModel(pl.LightningModule):  # 스케줄러 사용
         self.plm = transformers.FunnelModel.from_pretrained(  # 기존 모델
             pretrained_model_name_or_path=model_name,
         )
-        self.input_dim = transformers.FunnelConfig.from_pretrained(self.model_name).d_model  # 히든 벡터 차원
+        self.input_dim = transformers.FunnelConfig.from_pretrained(
+            self.model_name,
+        ).d_model  # 히든 벡터 차원
 
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
 
@@ -246,7 +255,10 @@ class Xlm_CustomModel(pl.LightningModule):
         self.model_name = model_name
         self.lr = lr
 
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name, num_labels=1)
+        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model_name_or_path=model_name,
+            num_labels=1,
+        )
 
         if frozen == True:
             self.frozen()

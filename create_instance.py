@@ -1,7 +1,7 @@
-from data_loader.data_loaders import Dataloader, KfoldDataloader
-import model.model as module_arch
-
 import torch
+
+import model.model as module_arch
+from data_loader.data_loaders import Dataloader, KfoldDataloader
 
 
 def new_instance(conf, config=None):  # sweep 부분 때문에 두번째 인자 추가
