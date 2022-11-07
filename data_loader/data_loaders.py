@@ -105,7 +105,7 @@ class Dataloader(pl.LightningDataModule):
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
             if self.text_preprocessing:
-                text = text_preprocessing_funnel(text)  # 전처리 추가
+                text = text_preprocessing(text)  # 전처리 추가
 
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
             # source = item["source"].split("-")[-1]
@@ -119,7 +119,7 @@ class Dataloader(pl.LightningDataModule):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
 
                 if self.text_preprocessing:
-                    text = text_preprocessing_funnel(text)  # 전처리 추가
+                    text = text_preprocessing(text)  # 전처리 추가
                 ###
                 # source = item["source"].split("-")[-1]
                 # text = source + "[SEP]" + text
@@ -351,18 +351,6 @@ class KfoldDataloader(pl.LightningDataModule):
 def text_preprocessing(sentence):
     s = re.sub(r"!!+", "!!!", sentence)  # !한개 이상 -> !!! 고정
     s = re.sub(r"\?\?+", "???", s)  # ?한개 이상 -> ??? 고정
-    s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
-    s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
-    s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
-    s = re.sub(r"ㅎㅎ+", "ㅎㅎㅎ", s)  # ㅎ두개 이상 -> ㅎㅎㅎ 고정
-    s = re.sub(r"ㅋㅋ+", "ㅋㅋㅋ", s)  # ㅋ두개 이상 -> ㅋㅋㅋ 고정
-    s = re.sub(r"ㄷㄷ+", "ㄷㄷㄷ", s)  # ㄷ두개 이상 -> ㄷㄷㄷ 고정
-    return s
-
-
-def text_preprocessing_funnel(sentence):
-    s = re.sub(r"!+", "!!!", sentence)  # !두개 이상 -> ! 고정
-    s = re.sub(r"\?+", "???", s)  # ?두개 이상 -> ? 고정
     s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
     s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
     s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
