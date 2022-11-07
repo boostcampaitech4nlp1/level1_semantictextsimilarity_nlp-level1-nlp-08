@@ -1,3 +1,4 @@
+import os
 import re
 
 import pandas as pd
@@ -24,17 +25,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(
-        self,
-        model_name,
-        batch_size,
-        train_ratio,
-        shuffle,
-        train_path,
-        test_path,
-        predict_path,
-        swap,
-    ):
+    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, text_preprocessing=False):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -65,6 +56,9 @@ class Dataloader(pl.LightningDataModule):
                 "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
                 "jhgan/ko-sroberta-multitask",
             ],
+            "funnel": [
+                "kykim/funnel-kor-base",
+            ],
         }
 
         if model_name in model_list["bert"]:
@@ -73,6 +67,8 @@ class Dataloader(pl.LightningDataModule):
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(self.model_name)
         elif model_name in model_list["roberta"]:
             self.tokenizer = transformers.RobertaTokenizer.from_pretrained(self.model_name)
+        elif model_name in model_list["funnel"]:
+            self.tokenizer = transformers.FunnelTokenizer.from_pretrained(self.model_name)
         else:
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
@@ -81,15 +77,21 @@ class Dataloader(pl.LightningDataModule):
         # self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
         # ###
         # 넣을 토큰 지정 , "rtt", "sampled"
-        self.add_token = [
-            "<PERSON>",
-            "...",
-            "!!!",
-            "???",
-            "ㅎㅎㅎ",
-            "ㅋㅋㅋ",
-            "ㄷㄷㄷ",
-        ]
+        self.use_preprocessing = text_preprocessing
+        if self.use_preprocessing:
+            self.add_token = [
+                "<PERSON>",
+                "...",
+                # "!!!",
+                # "???",
+                "ㅎㅎㅎ",
+                "ㅋㅋㅋ",
+                "ㄷㄷㄷ",
+            ]
+        else:
+            self.add_token = [
+                "<PERSON>",
+            ]
 
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
         self.swap = swap
@@ -102,7 +104,8 @@ class Dataloader(pl.LightningDataModule):
         data = []
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            text = text_preprocessing(text)  # 전처리 추가
+            if self.use_preprocessing:
+                text = text_preprocessing(text)  # 전처리 추가
 
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
             # source = item["source"].split("-")[-1]
@@ -114,7 +117,9 @@ class Dataloader(pl.LightningDataModule):
         if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
-                text = text_preprocessing(text)  # 전처리 추가
+
+                if self.use_preprocessing:
+                    text = text_preprocessing(text)  # 전처리 추가
                 ###
                 # source = item["source"].split("-")[-1]
                 # text = source + "[SEP]" + text
@@ -197,13 +202,14 @@ class KfoldDataloader(pl.LightningDataModule):
         predict_path,
         use_swap,
     ):
+
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.k = k
         self.num_splits = num_splits
-        self.split_seed = 12345
+        self.split_seed = 1204
 
         self.train_path = train_path
         self.test_path = test_path
@@ -229,6 +235,7 @@ class KfoldDataloader(pl.LightningDataModule):
                 "sentence-transformers/roberta-base-nli-stsb-mean-tokens",
                 "jhgan/ko-sroberta-multitask",
             ],
+            "funnel": ["kykim/funnel-kor-base"],
         }
 
         if model_name in model_list["bert"]:
@@ -237,23 +244,15 @@ class KfoldDataloader(pl.LightningDataModule):
             self.tokenizer = transformers.ElectraTokenizer.from_pretrained(self.model_name)
         elif model_name in model_list["roberta"]:
             self.tokenizer = transformers.RobertaTokenizer.from_pretrained(self.model_name)
+        elif model_name in model_list["funnel"]:
+            self.tokenizer = transformers.FunnelTokenizer.from_pretrained(self.model_name)
         else:
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
         self.tokenizer.model_max_length = 128
-        # ###
-        # self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
-        # ###
-        # 넣을 토큰 지정 , "rtt", "sampled"
-        self.add_token = [
-            "<PERSON>",
-            "...",
-            "!!!",
-            "???",
-            "ㅎㅎㅎ",
-            "ㅋㅋㅋ",
-            "ㄷㄷㄷ",
-        ]
+        ###
+        self.add_token = ["<PERSON>"]
+        ###
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)
 
         self.swap = use_swap
@@ -264,24 +263,17 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def tokenizing(self, dataframe, swap):
         data = []
+        print("ToKenizer info: \n", self.tokenizer)
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            text = text_preprocessing(text)  # 전처리 추가
-            ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
-            # source = item["source"].split("-")[-1]
-            # text = source + "[SEP]" + text
-            ###
+            # text = text_preprocessing(text)
             outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
             data.append(outputs["input_ids"])
 
         if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
-                text = text_preprocessing(text)  # 전처리 추가
-                ###
-                # source = item["source"].split("-")[-1]
-                # text = source + "[SEP]" + text
-                ###
+                # text = text_preprocessing(text)
                 outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
                 data.append(outputs["input_ids"])
 
@@ -304,21 +296,31 @@ class KfoldDataloader(pl.LightningDataModule):
     def setup(self, stage="fit"):
         if stage == "fit":
             total_data = pd.read_csv(self.train_path)
-            total_inputs, total_targets = self.preprocessing(total_data, self.swap)
-            total_dataset = Dataset(total_inputs, total_targets)
 
             kf = KFold(
                 n_splits=self.num_splits,
                 shuffle=self.shuffle,
                 random_state=self.split_seed,
             )
-            all_splits = [k for k in kf.split(total_dataset)]
-
+            all_splits = [d_i for d_i in kf.split(total_data)]
             train_indexes, val_indexes = all_splits[self.k]
             train_indexes, val_indexes = train_indexes.tolist(), val_indexes.tolist()
 
-            self.train_dataset = [total_dataset[x] for x in train_indexes]
-            self.val_dataset = [total_dataset[x] for x in val_indexes]
+            print("Number of splits: \n", self.num_splits)
+            print("Before Swap Train data len: \n", len(train_indexes))
+            print("Before Swap Valid data len: \n", len(val_indexes))
+
+            train_inputs, train_targets = self.preprocessing(total_data.loc[train_indexes], self.swap)
+            valid_inputs, valid_targets = self.preprocessing(total_data.loc[val_indexes], False)
+
+            train_dataset = Dataset(train_inputs, train_targets)
+            valid_dataset = Dataset(valid_inputs, valid_targets)
+
+            print("After Swap Train data len: \n", len(train_inputs))
+            print("After Swap Valid data len: \n", len(valid_inputs))
+
+            self.train_dataset = train_dataset
+            self.val_dataset = valid_dataset
 
         else:
             test_data = pd.read_csv(self.test_path)
