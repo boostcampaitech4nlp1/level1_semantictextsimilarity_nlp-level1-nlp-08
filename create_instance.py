@@ -21,6 +21,8 @@ def new_instance(conf, config=None):  # sweep 부분 때문에 두번째 인자 
         conf.path.predict_path,
         conf.data.swap,
     )
+
+    # custom 모델 인지 확인
     model = module_arch.Model(
         conf.model.model_name,
         learning_rate,
