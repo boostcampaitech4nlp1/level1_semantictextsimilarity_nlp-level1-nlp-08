@@ -2,12 +2,12 @@ import pytorch_lightning as pl
 import torch
 from pytorch_lightning.loggers import WandbLogger
 
+import create_instance
 import model.model as module_arch
 import utils.utils as utils
 import wandb
 from data_loader.data_loaders import Dataloader, KfoldDataloader
 
-import create_instance
 
 # train.train(conf)
 def train(args, conf):
@@ -33,7 +33,7 @@ def train(args, conf):
                 top_k=conf.utils.top_k,
                 monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                 mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
+                filename="{epoch}-{step}-{val_pearson}-{val_loss}",  # best 모델 저장시에 filename 설정
             ),
         ],
     )
@@ -69,7 +69,7 @@ def continue_train(args, conf):
                 top_k=conf.utils.top_k,
                 monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                 mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
+                filename="{epoch}-{step}-{val_pearson}-{val_loss}",  # best 모델 저장시에 filename 설정
             ),
         ],
     )
@@ -88,6 +88,7 @@ def k_train(args, conf):
     results = []
     num_folds = conf.k_fold.num_folds
 
+    exp_name = WandbLogger(project=project_name).experiment.name
     for k in range(num_folds):
         k_datamodule = KfoldDataloader(
             conf.model.model_name,
@@ -109,9 +110,14 @@ def k_train(args, conf):
             conf.train.use_frozen,
         )
 
-        name_ = f"{k+1}th_fold"
-        wandb_logger = WandbLogger(project=project_name, name=name_)
-        save_path = f"{conf.path.save_path}{conf.model.model_name}_{conf.train.max_epoch}_{conf.train.batch_size}/"  # 모델 저장 디렉터리명에 wandb run name 추가
+        if k + 1 == 1:
+            name_ = f"{k+1}st_fold"
+        elif k + 1 == 2:
+            name_ = f"{k+1}nd_fold"
+        else:
+            name_ = f"{k+1}th_fold"
+        wandb_logger = WandbLogger(project=project_name, name=exp_name)
+        save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{wandb_logger.experiment.name}_{name_}/"
         trainer = pl.Trainer(
             accelerator="gpu",
             devices=1,
@@ -129,7 +135,7 @@ def k_train(args, conf):
                     top_k=conf.utils.top_k,
                     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                    filename=f"{k+1}_best_pearson_model",
+                    filename="{epoch}-{step}-{val_pearson}-{val_loss}",
                 ),
             ],
         )
@@ -139,13 +145,12 @@ def k_train(args, conf):
         wandb.finish()
 
         results.extend(score)
-        save_model = f"{conf.path.save_path}{conf.model.model_name}_fold_{k+1}_epoch_{conf.train.max_epoch}_batchsize_{conf.train.batch_size}"
-        # torch.save(Kmodel, save_model + ".pt")
-        trainer.save_checkpoint(save_model + ".ckpt")
+        # torch.save(Kmodel, save_path + f"{name_} model.pt")
+        trainer.save_checkpoint(save_path + f"{name_} model.ckpt")
 
     result = [x["test_pearson"] for x in results]
     score = sum(result) / num_folds
-    print(score)
+    print(f"{num_folds}-fold pearson 평균 점수: {score}")
 
 
 def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 반복할 횟수를 받아옵니다
@@ -196,7 +201,7 @@ def sweep(args, conf, exp_count):  # 메인에서 받아온 args와 실험을 �
                     top_k=conf.utils.top_k,
                     monitor=utils.monitor_config[conf.utils.monitor]["monitor"],
                     mode=utils.monitor_config[conf.utils.monitor]["mode"],
-                    filename="{epoch}-{step}-{val_pearson}",  # best 모델 저장시에 filename 설정
+                    filename="{epoch}-{step}-{val_pearson}-{val_loss}",  # best 모델 저장시에 filename 설정
                 ),
             ],
         )

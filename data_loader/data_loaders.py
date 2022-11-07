@@ -8,6 +8,8 @@ import transformers
 from sklearn.model_selection import KFold, StratifiedShuffleSplit
 from tqdm.auto import tqdm
 
+from utils import utils
+
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, inputs, targets=[]):
@@ -25,7 +27,18 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, use_preprocessing=False):
+    def __init__(
+        self,
+        model_name,
+        batch_size,
+        train_ratio,
+        shuffle,
+        train_path,
+        test_path,
+        predict_path,
+        use_swap,
+        use_preprocessing=False,
+    ):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -73,10 +86,6 @@ class Dataloader(pl.LightningDataModule):
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
         self.tokenizer.model_max_length = 128
-        # ###
-        # self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
-        # ###
-        # 넣을 토큰 지정 , "rtt", "sampled"
         self.use_preprocessing = use_preprocessing
         if self.use_preprocessing:
             self.add_token = [
@@ -94,7 +103,7 @@ class Dataloader(pl.LightningDataModule):
             ]
 
         self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
-        self.swap = swap
+        self.swap = use_swap
 
         self.target_columns = ["label"]
         self.delete_columns = ["id"]
@@ -105,12 +114,7 @@ class Dataloader(pl.LightningDataModule):
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
             if self.use_preprocessing:
-                text = text_preprocessing(text)  # 전처리 추가
-
-            ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
-            # source = item["source"].split("-")[-1]
-            # text = source + "[SEP]" + text
-            ###
+                text = utils.text_preprocessing(text)  # 전처리 추가
             outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
             data.append(outputs["input_ids"])
 
@@ -119,11 +123,7 @@ class Dataloader(pl.LightningDataModule):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
 
                 if self.use_preprocessing:
-                    text = text_preprocessing(text)  # 전처리 추가
-                ###
-                # source = item["source"].split("-")[-1]
-                # text = source + "[SEP]" + text
-                ###
+                    text = utils.text_preprocessing(text)  # 전처리 추가
                 outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
                 data.append(outputs["input_ids"])
 
@@ -201,6 +201,7 @@ class KfoldDataloader(pl.LightningDataModule):
         test_path,
         predict_path,
         use_swap,
+        use_preprocessing=False,
     ):
 
         super().__init__()
@@ -250,11 +251,23 @@ class KfoldDataloader(pl.LightningDataModule):
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.model_name)
 
         self.tokenizer.model_max_length = 128
-        ###
-        self.add_token = ["<PERSON>"]
-        ###
-        self.new_token_count = self.tokenizer.add_tokens(self.add_token)
+        self.use_preprocessing = use_preprocessing
+        if self.use_preprocessing:
+            self.add_token = [
+                "<PERSON>",
+                "...",
+                # "!!!",
+                # "???",
+                "ㅎㅎㅎ",
+                "ㅋㅋㅋ",
+                "ㄷㄷㄷ",
+            ]
+        else:
+            self.add_token = [
+                "<PERSON>",
+            ]
 
+        self.new_token_count = self.tokenizer.add_tokens(self.add_token)  # 새롭게 추가된 토큰의 수 저장
         self.swap = use_swap
 
         self.target_columns = ["label"]
@@ -266,14 +279,16 @@ class KfoldDataloader(pl.LightningDataModule):
         print("ToKenizer info: \n", self.tokenizer)
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            # text = text_preprocessing(text)
+            if self.use_preprocessing:
+                text = utils.text_preprocessing(text)  # 전처리 추가
             outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
             data.append(outputs["input_ids"])
 
         if swap:  # swap 적용시 양방향 될 수 있도록
             for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
-                # text = text_preprocessing(text)
+                if self.use_preprocessing:
+                    text = utils.text_preprocessing(text)  # 전처리 추가
                 outputs = self.tokenizer(text, add_special_tokens=True, padding="max_length", truncation=True)
                 data.append(outputs["input_ids"])
 
@@ -346,15 +361,3 @@ class KfoldDataloader(pl.LightningDataModule):
 
     def new_vocab_size(self):
         return self.new_token_count + self.tokenizer.vocab_size
-
-
-def text_preprocessing(sentence):
-    s = re.sub(r"!!+", "!!!", sentence)  # !한개 이상 -> !!! 고정
-    s = re.sub(r"\?\?+", "???", s)  # ?한개 이상 -> ??? 고정
-    s = re.sub(r"\.\.+", "...", s)  # .두개 이상 -> ... 고정
-    s = re.sub(r"\~+", "~", s)  # ~한개 이상 -> ~ 고정
-    s = re.sub(r"\;+", ";", s)  # ;한개 이상 -> ; 고정
-    s = re.sub(r"ㅎㅎ+", "ㅎㅎㅎ", s)  # ㅎ두개 이상 -> ㅎㅎㅎ 고정
-    s = re.sub(r"ㅋㅋ+", "ㅋㅋㅋ", s)  # ㅋ두개 이상 -> ㅋㅋㅋ 고정
-    s = re.sub(r"ㄷㄷ+", "ㄷㄷㄷ", s)  # ㄷ두개 이상 -> ㄷㄷㄷ 고정
-    return s
