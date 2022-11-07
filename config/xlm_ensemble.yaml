@@ -10,12 +10,12 @@ data:
   swap: True
 
 model:
-  model_name: klue/roberta-small
+  model_name: xlm-roberta-large
 
 train:
-  max_epoch: 1
+  max_epoch: 33
   batch_size: 32
-  learning_rate: 1e-5
+  learning_rate: 56e-6
   loss: mse
   use_frozen: False
   
@@ -31,4 +31,4 @@ k_fold:
   num_split: 5
   
 wandb:
-  project: nlp-08-sts
+  project: nlp-08-level1-sts
