@@ -114,9 +114,11 @@ def k_train(args, conf):
             name_ = f"{k+1}st_fold"
         elif k + 1 == 2:
             name_ = f"{k+1}nd_fold"
+        elif k + 1 == 3:
+            name_ = f"{k+1}rd_fold"
         else:
             name_ = f"{k+1}th_fold"
-        wandb_logger = WandbLogger(project=project_name, name=exp_name)
+        wandb_logger = WandbLogger(project=project_name, name=exp_name + f"_{name_}")
         save_path = f"{conf.path.save_path}{conf.model.model_name}_maxEpoch{conf.train.max_epoch}_batchSize{conf.train.batch_size}_{wandb_logger.experiment.name}_{name_}/"
         trainer = pl.Trainer(
             accelerator="gpu",
