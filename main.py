@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--config", "-c", type=str, default="funnel_ensemble")
+    parser.add_argument("--config", "-c", type=str, default="base_config")
     parser.add_argument("--mode", "-m", required=True)
     parser.add_argument(
         "--saved_model",
@@ -42,6 +42,7 @@ if __name__ == "__main__":
         # num_folds 변수 확인
         if conf.k_fold.use_k_fold:
             train.k_train(args, conf)
+
         else:
             train.train(args, conf)
 
@@ -65,3 +66,4 @@ if __name__ == "__main__":
         print("train     : t,\ttrain")
         print("exp       : e,\texp")
         print("inference : i,\tinference")
+        print("continue train : ct,\tcontinue train")
