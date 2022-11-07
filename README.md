@@ -12,17 +12,20 @@
 
 ## 데이터
 ### 평가 데이터의 50%는 Public 점수 계산에 활용되어 실시간 리더보드에 표기가 되고, 남은 50%는 Private 결과 계산에 활용되어 대회 종료 후 평가됩니다.
-- 제공된 데이터
+- 기본 데이터
   - 학습 데이터셋 9,324개
   - 검증 데이터셋 550개
   - 평가 데이터는 1,100개
-- 증강한 데이터
-  1. 맞춤법 교정
-      - 학습 데이터셋 15,205개
-      - 검증 데이터셋 1,689개
-      - 평가 데이터셋 1,100개
-  2. 문장 순서 변경
-      - ㅁㅁㅁㅁ
+- 시행착오 데이터 (try)
+    - [데이터 증강] 1-1, 2번 적용
+    - 학습 데이터셋 15,277개
+    - 검증 데이터셋 1,689개
+    - 평가 데이터셋 1,100개
+- 최종 데이터 (final)
+    - [데이터 증강] 1-2, 2번 적용
+    - 학습 데이터셋 14,369개
+    - 검증 데이터셋 1,500개
+    - 평가 데이터셋 1,100개
 ---
 ## 모델
 - 모델1
@@ -40,3 +43,25 @@
 |------|---|---|
 |모델1|0.xx|blahblah|
 |모델2|0.xx|blahblah|
+---
+## 명령어 예제
+### Train
+```
+python main.py -m t -c base_config
+```
+### Continue Train
+```
+python main.py -m ct -s 'save_models/xlm-roberta-large_maxEpoch1_batchSize32_still-mountain-1/epoch=0-step=4203-val_pearson=0.9-val_loss=0.4.ckpt' -c base_config
+```
+### Inference
+```
+python main.py -m i -s 'save_models/xlm-roberta-large_maxEpoch1_batchSize32_still-mountain-1/epoch=0-step=4203-val_pearson=0.9-val_loss=0.4.ckpt' -c base_config
+```
+### WandB Sweep
+```
+python main.py -m e -c base_config
+```
+- 실행 후 반복 횟수 입력
+
+
+---
