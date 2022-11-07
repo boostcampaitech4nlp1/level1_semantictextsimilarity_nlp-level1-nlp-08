@@ -77,8 +77,8 @@ class Dataloader(pl.LightningDataModule):
         # self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
         # ###
         # 넣을 토큰 지정 , "rtt", "sampled"
-        self.text_preprocessing = text_preprocessing
-        if self.text_preprocessing:
+        self.use_preprocessing = text_preprocessing
+        if self.use_preprocessing:
             self.add_token = [
                 "<PERSON>",
                 "...",
@@ -104,7 +104,7 @@ class Dataloader(pl.LightningDataModule):
         data = []
         for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
             text = "[SEP]".join([item[text_column] for text_column in self.text_columns])
-            if self.text_preprocessing:
+            if self.use_preprocessing:
                 text = text_preprocessing(text)  # 전처리 추가
 
             ### rtt, sampled 토큰을 추가한 경우 텍스트 맨 앞에 해당 토큰 붙여줌
@@ -118,7 +118,7 @@ class Dataloader(pl.LightningDataModule):
             for idx, item in tqdm(dataframe.iterrows(), desc="tokenizing", total=len(dataframe)):
                 text = "[SEP]".join([item[text_column] for text_column in self.text_columns[::-1]])
 
-                if self.text_preprocessing:
+                if self.use_preprocessing:
                     text = text_preprocessing(text)  # 전처리 추가
                 ###
                 # source = item["source"].split("-")[-1]
