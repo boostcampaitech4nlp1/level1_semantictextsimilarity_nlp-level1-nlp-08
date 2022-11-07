@@ -25,7 +25,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class Dataloader(pl.LightningDataModule):
-    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, text_preprocessing=False):
+    def __init__(self, model_name, batch_size, train_ratio, shuffle, train_path, test_path, predict_path, swap, use_preprocessing=False):
         super().__init__()
         self.model_name = model_name
         self.batch_size = batch_size
@@ -77,7 +77,7 @@ class Dataloader(pl.LightningDataModule):
         # self.add_token = ["<PERSON>"]  # , "rtt", "sampled"
         # ###
         # 넣을 토큰 지정 , "rtt", "sampled"
-        self.use_preprocessing = text_preprocessing
+        self.use_preprocessing = use_preprocessing
         if self.use_preprocessing:
             self.add_token = [
                 "<PERSON>",

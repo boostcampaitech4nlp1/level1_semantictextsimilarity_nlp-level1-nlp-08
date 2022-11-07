@@ -9,7 +9,7 @@ from . import loss as loss_module
 
 
 class Model(pl.LightningModule):
-    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):  # 새로운 vocab 사이즈 설정
+    def __init__(self, model_name, lr, loss, new_vocab_size, use_freeze):  # 새로운 vocab 사이즈 설정
         super().__init__()
         self.save_hyperparameters()
 
@@ -21,12 +21,12 @@ class Model(pl.LightningModule):
             num_labels=1,
         )
 
-        if frozen == True:
-            self.frozen()
+        if use_freeze == True:
+            self.freeze()
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
         self.loss_func = loss_module.loss_config[loss]
 
-    def frozen(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
+    def freeze(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
         for name, param in self.plm.named_parameters():
             param.requires_grad = False
             if name in [
@@ -82,7 +82,7 @@ class Model(pl.LightningModule):
 
 
 class Klue_CustomModel(pl.LightningModule):
-    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):
+    def __init__(self, model_name, lr, loss, new_vocab_size, use_freeze):
         super().__init__()
         self.save_hyperparameters()
         self.model_name = model_name
@@ -102,12 +102,12 @@ class Klue_CustomModel(pl.LightningModule):
             nn.Linear(self.classifier_input, 1),
         )
 
-        if frozen == True:
-            self.frozen()
+        if use_freeze == True:
+            self.freeze()
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
         self.loss_func = loss_module.loss_config[loss]
 
-    def frozen(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
+    def freeze(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
         for name, param in self.plm.named_parameters():
             param.requires_grad = False
             if name in [
@@ -163,7 +163,7 @@ class Klue_CustomModel(pl.LightningModule):
 
 
 class Funnel_CustomModel(pl.LightningModule):  # 스케줄러 사용
-    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):
+    def __init__(self, model_name, lr, loss, new_vocab_size, use_freeze):
         super().__init__()
         self.save_hyperparameters()
         self.model_name = model_name
@@ -186,12 +186,12 @@ class Funnel_CustomModel(pl.LightningModule):  # 스케줄러 사용
         )
         self.Head2 = nn.Sequential(nn.Linear(1792, 1))
 
-        if frozen == True:
-            self.frozen()
+        if use_freeze == True:
+            self.freeze()
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
         self.loss_func = loss_module.loss_config[loss]
 
-    def frozen(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
+    def freeze(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
         for name, param in self.plm.named_parameters():
             param.requires_grad = False
             if name in [
@@ -248,7 +248,7 @@ class Funnel_CustomModel(pl.LightningModule):  # 스케줄러 사용
 
 
 class Xlm_CustomModel(pl.LightningModule):
-    def __init__(self, model_name, lr, loss, new_vocab_size, frozen):  # 새로운 vocab 사이즈 설정
+    def __init__(self, model_name, lr, loss, new_vocab_size, use_freeze):  # 새로운 vocab 사이즈 설정
         super().__init__()
         self.save_hyperparameters()
 
@@ -260,12 +260,12 @@ class Xlm_CustomModel(pl.LightningModule):
             num_labels=1,
         )
 
-        if frozen == True:
-            self.frozen()
+        if use_freeze == True:
+            self.freeze()
         self.plm.resize_token_embeddings(new_vocab_size)  # 임베딩 차원 재조정
         self.loss_func = loss_module.loss_config[loss]
 
-    def frozen(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
+    def freeze(self):  # 추후 레이어를 반복하면서 얼리고 풀고 할 수 있게 훈련
         for name, param in self.plm.named_parameters():
             param.requires_grad = False
             if name in [
