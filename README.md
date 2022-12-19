@@ -83,8 +83,7 @@ python main.py -m e -c base_config
 - 실행 후 반복 횟수 입력
 ---
 # 결과 (14팀 중 1위)
-![1등 먹었닭](https://user-images.githubusercontent.com/51015187/200264645-69841882-0ee7-4444-9d71-364238bb5809.png)
 <em>Public Score 결과</em>
-![private도 1등 먹었닭](https://user-images.githubusercontent.com/51015187/200264496-a7c35f09-cbef-47f6-a169-b5baa0480580.png)
+![1등 먹었닭](https://user-images.githubusercontent.com/51015187/200264645-69841882-0ee7-4444-9d71-364238bb5809.png)
 <em>Private Score 결과</em>
-
+![private도 1등 먹었닭](https://user-images.githubusercontent.com/51015187/200264496-a7c35f09-cbef-47f6-a169-b5baa0480580.png)
